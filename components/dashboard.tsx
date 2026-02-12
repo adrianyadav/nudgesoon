@@ -8,6 +8,8 @@ import { ExpiryItemList } from '@/components/expiry-item-list';
 import { getItemsAction } from '@/app/actions/item-actions';
 import { ExpiryItemWithStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+import { NudgeIcon } from '@/components/nudge-icon';
 import { LogOut } from 'lucide-react';
 
 export function Dashboard() {
@@ -27,7 +29,7 @@ export function Dashboard() {
     setIsLoading(false);
   };
 
-  const handleCancelEdit = () => {
+  const handleCloseEditModal = () => {
     setEditingItem(null);
     loadItems();
   };
@@ -54,11 +56,11 @@ export function Dashboard() {
           transition={{ duration: 0.5 }}
           className="mb-8 flex justify-between items-start"
         >
-          <div>
+          <div className="flex items-center gap-3">
+            <NudgeIcon className="w-10 h-10 md:w-12 md:h-12 text-primary" />
             <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r bg-primary bg-clip-text text-transparent mb-2">
               Nudge
             </h1>
-     
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right hidden md:block">
@@ -79,7 +81,7 @@ export function Dashboard() {
           </div>
         </motion.header>
 
-        {/* Form */}
+        {/* Add form - always in "add" mode; edit happens in modal */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -87,11 +89,18 @@ export function Dashboard() {
           className="mb-8"
         >
           <ExpiryItemForm
-            editingItem={editingItem}
-            onCancelEdit={handleCancelEdit}
             onItemCreated={loadItems}
           />
         </motion.div>
+
+        {/* Edit modal - open when editing a card */}
+        <Dialog open={!!editingItem} onClose={handleCloseEditModal}>
+          <ExpiryItemForm
+            editingItem={editingItem ?? undefined}
+            onCancelEdit={handleCloseEditModal}
+            onItemCreated={loadItems}
+          />
+        </Dialog>
 
         {/* Items List */}
         <motion.div

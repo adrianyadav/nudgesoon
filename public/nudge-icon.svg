@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+  <title>Nudge</title>
+  <!-- Main shape: the thing you're being reminded about -->
+  <circle cx="32" cy="34" r="22" fill="currentColor" opacity="0.85"/>
+  <!-- The nudge: small circle nudging in from the side -->
+  <circle cx="54" cy="26" r="12" fill="currentColor"/>
+</svg>

@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Calendar, Sparkles, Bell, Shield } from 'lucide-react';
+import { NudgeIcon } from '@/components/nudge-icon';
 
 export function LandingPage() {
   const router = useRouter();
@@ -86,9 +87,10 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-7xl md:text-9xl font-bold mb-6 text-foreground tracking-tight"
+            className="flex items-center justify-center gap-4 md:gap-6 mb-6 text-foreground tracking-tight"
           >
-            Nudge
+            <NudgeIcon className="w-16 h-16 md:w-24 md:h-24 text-primary" />
+            <span className="text-7xl md:text-9xl font-bold">Nudge</span>
           </motion.h1>
 
           <motion.p

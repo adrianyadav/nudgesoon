@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Nudge - Gentle Reminders for Your Items",
   description: "Get timely nudges before your items expire. Track food, medicine, and more with instant visual feedback.",
+  icons: {
+    icon: "/nudge-icon.svg",
+  },
 };
 
 export default function RootLayout({
