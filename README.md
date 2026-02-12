@@ -1,8 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nudge
+
+**Gentle reminders for everything that expires.**
+
+Nudge is a simple app that helps you track anything with an expiry date—passports, memberships, food, medicine, and more. Add items with just a name and year, and get visual nudges when they're approaching or past their expiry.
+
+## Features
+
+- **Simple tracking** — Add the year and item name; we handle the rest
+- **Instant updates** — See your items update in real-time
+- **Smart reminders** — Visual status indicators (safe, approaching, critical) so you never miss what matters
+- **Private & secure** — Each user sees only their own items
+
+## Tech Stack
+
+- [Next.js](https://nextjs.org) 16
+- [NextAuth](https://next-auth.js.org/) for authentication
+- PostgreSQL for data
+- Tailwind CSS, Framer Motion, Radix UI
+
+## Prerequisites
+
+- Node.js 18+
+- PostgreSQL database
+- A `.env.local` file with `POSTGRES_URL` and NextAuth variables
+
+## Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Set up the database:
+
+```bash
+npm run setup-db
+```
+
+3. (Optional) Seed sample data:
+
+```bash
+npm run seed
+```
 
 ## Getting Started
 
-First, run the development server:
+Run the development server:
 
 ```bash
 npm run dev
@@ -14,11 +58,7 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000) with your browser. Sign in to access your dashboard and start adding expiry items.
 
 ## Learn More
 

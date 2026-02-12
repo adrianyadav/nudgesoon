@@ -1,4 +1,4 @@
-import { Pool, QueryResult } from 'pg';
+import { Pool, QueryResult, QueryResultRow } from 'pg';
 import { ExpiryItem, User } from './types';
 
 // Singleton connection pool
@@ -19,7 +19,7 @@ export function getPool(): Pool {
   return pool;
 }
 
-export async function query<T>(
+export async function query<T extends QueryResultRow>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
