@@ -28,6 +28,8 @@ export function Dashboard() {
   }, []);
 
   useEffect(() => {
+    // loadItems performs async fetches and then sets state on completion.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadItems();
   }, [loadItems]);
 

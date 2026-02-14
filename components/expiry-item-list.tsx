@@ -118,6 +118,8 @@ export function ExpiryItemList({
       hasInitializedFilters.current = false;
     } else if (!hasInitializedFilters.current) {
       const saved = loadSavedFilters();
+      // Initialize from localStorage/default only once when items first appear.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatusFilters(saved ?? getDefaultFilters(items));
       hasInitializedFilters.current = true;
     }

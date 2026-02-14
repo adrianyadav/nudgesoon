@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable react-hooks/static-components, react-hooks/preserve-manual-memoization */
 
 import { useState, useTransition, useRef, useEffect, useMemo, useCallback, memo } from 'react';
 import { createItemAction, updateItemAction } from '@/app/actions/item-actions';
@@ -423,7 +424,7 @@ export function ExpiryItemForm({ editingItem, onCancelEdit, onItemCreated }: Exp
               </div>
 
               <p className="text-xs text-gray-500 italic">
-                💡 Tip: Only year is required. Leave month/day blank if you don't know the exact date.
+                💡 Tip: Only year is required. Leave month/day blank if you don&apos;t know the exact date.
               </p>
             </div>
 

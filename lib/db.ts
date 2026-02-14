@@ -22,7 +22,7 @@ export function getPool(): Pool {
 
 export async function query<T extends QueryResultRow>(
   text: string,
-  params?: any[]
+  params?: readonly unknown[]
 ): Promise<QueryResult<T>> {
   const pool = getPool();
   return pool.query<T>(text, params);
