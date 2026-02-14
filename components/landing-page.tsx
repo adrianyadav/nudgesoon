@@ -117,17 +117,8 @@ export function LandingPage({ onTryWithoutAccount }: LandingPageProps) {
             >
               Get Started Free
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="text-lg px-8 py-6"
-              onClick={() => {
-                document
-                  .getElementById('features')
-                  ?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              Learn More
+            <Button variant="outline" size="lg" className="text-lg px-8 py-6" asChild>
+              <Link href="#features">Learn More</Link>
             </Button>
             <Button
               variant="secondary"
