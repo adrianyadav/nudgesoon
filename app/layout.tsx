@@ -27,11 +27,20 @@ export const metadata: Metadata = {
     description: "Get timely nudges before your items expire. Track passports, memberships, food, medicine, and more.",
     type: "website",
     url: "https://www.nudgesoon.com",
+    images: [
+      {
+        url: "/og-image",
+        width: 1200,
+        height: 630,
+        alt: "NudgeSoon - Gentle Reminders for Your Items",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${BRAND_NAME} - Gentle Reminders for Your Items`,
     description: "Get timely nudges before your items expire. Track passports, memberships, food, medicine, and more.",
+    images: ["/og-image"],
   },
   icons: {
     icon: "/favicon.ico",
