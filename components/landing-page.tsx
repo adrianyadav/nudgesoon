@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Calendar, Sparkles, Bell, Shield } from 'lucide-react';
+import { PRIVACY_ITEMS } from '@/lib/privacy-content';
 import { NudgeIcon } from '@/components/nudge-icon';
 import { BRAND_NAME } from '@/lib/constants';
 import { Navbar } from '@/components/navbar';
@@ -91,7 +92,7 @@ export function LandingPage() {
             className="flex items-center justify-center gap-4 md:gap-6 mb-6 text-foreground tracking-tight"
           >
             <NudgeIcon className="w-16 h-16 md:w-24 md:h-24 text-primary" />
-            <span className="text-7xl md:text-9xl font-bold">{BRAND_NAME}</span>
+            <span className="text-5xl md:text-9xl font-bold">{BRAND_NAME}</span>
           </h1>
 
           <p
@@ -197,67 +198,33 @@ export function LandingPage() {
 
         <div>
           <Card className="p-8 max-w-3xl mx-auto bg-card/80 backdrop-blur hover:shadow-xl transition-all">
-            <div className="flex items-start gap-4 mb-6">
+            <div className="flex items-start gap-4 mb-8">
               <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shrink-0">
                 <Shield className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-1">
-                  Your data is secure
+                  Built with security first
                 </h3>
                 <p className="text-muted-foreground text-sm">
-                  We use industry-standard practices to keep your information safe.
+                  Encryption, isolation, and minimal data collection are baked into every layer of the stack.
                 </p>
               </div>
             </div>
-            <ul className="space-y-4 text-muted-foreground">
-              <li className="flex gap-3">
-                <span className="text-primary shrink-0">•</span>
-                <span>
-                  <strong className="text-foreground">Data isolation:</strong> Every
-                  item is tied to your account. You only see your own items; no one
-                  else can access them.
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="text-primary shrink-0">•</span>
-                <span>
-                  <strong className="text-foreground">Password security:</strong>{' '}
-                  Passwords are hashed with bcrypt before storage. We never store
-                  plain-text passwords.
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="text-primary shrink-0">•</span>
-                <span>
-                  <strong className="text-foreground">Secure connections:</strong>{' '}
-                  Database connections use SSL. In production, all traffic is over
-                  HTTPS.
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="text-primary shrink-0">•</span>
-                <span>
-                  <strong className="text-foreground">Session security:</strong>{' '}
-                  Signed sessions with NextAuth. Your login state is protected.
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="text-primary shrink-0">•</span>
-                <span>
-                  <strong className="text-foreground">No selling data:</strong> We
-                  do not sell, share, or use your data for analytics or advertising.
-                  Data exists only to run the app.
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="text-primary shrink-0">•</span>
-                <span>
-                  <strong className="text-foreground">You own it:</strong> Delete
-                  items anytime. Your data is not shared with third parties.
-                </span>
-              </li>
-            </ul>
+
+            <div className="space-y-6">
+              {PRIVACY_ITEMS.map(({ icon: Icon, title, description }) => (
+                <div key={title} className="flex gap-4">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1">{title}</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </Card>
         </div>
       </div>
