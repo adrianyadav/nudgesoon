@@ -70,6 +70,38 @@ export const ITEM_ACCENT_COLORS: { iconBg: string; borderLeft: string }[] = [
 const DEFAULT_ACCENT = ITEM_ACCENT_COLORS[ITEM_ACCENT_COLORS.length - 1];
 
 /**
+ * Full card color set per accent (for safe-status cards).
+ * Order matches ITEM_ACCENT_COLORS.
+ */
+const ACCENT_CARD_COLORS: {
+  bg: string;
+  tint: string;
+  text: string;
+  border: string;
+  glow: string;
+  iconBg: string;
+  badgeBg: string;
+}[] = [
+  { bg: 'bg-linear-to-br from-blue-50 to-blue-100', tint: 'bg-blue-500/10', text: 'text-blue-700', border: 'border-blue-500', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.25)]', iconBg: 'bg-linear-to-br from-blue-500 to-blue-600', badgeBg: 'bg-blue-500/20' },
+  { bg: 'bg-linear-to-br from-violet-50 to-violet-100', tint: 'bg-violet-500/10', text: 'text-violet-700', border: 'border-violet-500', glow: 'shadow-[0_0_20px_rgba(139,92,246,0.25)]', iconBg: 'bg-linear-to-br from-violet-500 to-violet-600', badgeBg: 'bg-violet-500/20' },
+  { bg: 'bg-linear-to-br from-sky-50 to-sky-100', tint: 'bg-sky-500/10', text: 'text-sky-700', border: 'border-sky-500', glow: 'shadow-[0_0_20px_rgba(14,165,233,0.25)]', iconBg: 'bg-linear-to-br from-sky-500 to-sky-600', badgeBg: 'bg-sky-500/20' },
+  { bg: 'bg-linear-to-br from-amber-50 to-amber-100', tint: 'bg-amber-500/10', text: 'text-amber-700', border: 'border-amber-500', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.25)]', iconBg: 'bg-linear-to-br from-amber-500 to-amber-600', badgeBg: 'bg-amber-500/20' },
+  { bg: 'bg-linear-to-br from-emerald-50 to-emerald-100', tint: 'bg-emerald-500/10', text: 'text-emerald-700', border: 'border-emerald-500', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.25)]', iconBg: 'bg-linear-to-br from-emerald-500 to-emerald-600', badgeBg: 'bg-emerald-500/20' },
+  { bg: 'bg-linear-to-br from-orange-50 to-orange-100', tint: 'bg-orange-500/10', text: 'text-orange-700', border: 'border-orange-500', glow: 'shadow-[0_0_20px_rgba(249,115,22,0.25)]', iconBg: 'bg-linear-to-br from-orange-500 to-orange-600', badgeBg: 'bg-orange-500/20' },
+  { bg: 'bg-linear-to-br from-rose-50 to-rose-100', tint: 'bg-rose-500/10', text: 'text-rose-700', border: 'border-rose-500', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.25)]', iconBg: 'bg-linear-to-br from-rose-500 to-rose-600', badgeBg: 'bg-rose-500/20' },
+  { bg: 'bg-linear-to-br from-slate-50 to-slate-100', tint: 'bg-slate-600/10', text: 'text-slate-700', border: 'border-slate-600', glow: 'shadow-[0_0_20px_rgba(71,85,105,0.25)]', iconBg: 'bg-linear-to-br from-slate-600 to-slate-700', badgeBg: 'bg-slate-600/20' },
+  { bg: 'bg-linear-to-br from-indigo-50 to-indigo-100', tint: 'bg-indigo-500/10', text: 'text-indigo-700', border: 'border-indigo-500', glow: 'shadow-[0_0_20px_rgba(99,102,241,0.25)]', iconBg: 'bg-linear-to-br from-indigo-500 to-indigo-600', badgeBg: 'bg-indigo-500/20' },
+  { bg: 'bg-linear-to-br from-pink-50 to-pink-100', tint: 'bg-pink-500/10', text: 'text-pink-700', border: 'border-pink-500', glow: 'shadow-[0_0_20px_rgba(236,72,153,0.25)]', iconBg: 'bg-linear-to-br from-pink-500 to-pink-600', badgeBg: 'bg-pink-500/20' },
+  { bg: 'bg-linear-to-br from-cyan-50 to-cyan-100', tint: 'bg-cyan-500/10', text: 'text-cyan-700', border: 'border-cyan-500', glow: 'shadow-[0_0_20px_rgba(6,182,212,0.25)]', iconBg: 'bg-linear-to-br from-cyan-500 to-cyan-600', badgeBg: 'bg-cyan-500/20' },
+  { bg: 'bg-linear-to-br from-amber-50 to-amber-100', tint: 'bg-amber-500/10', text: 'text-amber-700', border: 'border-amber-500', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.25)]', iconBg: 'bg-linear-to-br from-amber-500 to-amber-600', badgeBg: 'bg-amber-500/20' },
+  { bg: 'bg-linear-to-br from-fuchsia-50 to-fuchsia-100', tint: 'bg-fuchsia-500/10', text: 'text-fuchsia-700', border: 'border-fuchsia-500', glow: 'shadow-[0_0_20px_rgba(217,70,239,0.25)]', iconBg: 'bg-linear-to-br from-fuchsia-500 to-fuchsia-600', badgeBg: 'bg-fuchsia-500/20' },
+  { bg: 'bg-linear-to-br from-teal-50 to-teal-100', tint: 'bg-teal-500/10', text: 'text-teal-700', border: 'border-teal-500', glow: 'shadow-[0_0_20px_rgba(20,184,166,0.25)]', iconBg: 'bg-linear-to-br from-teal-500 to-teal-600', badgeBg: 'bg-teal-500/20' },
+  { bg: 'bg-linear-to-br from-emerald-50 to-emerald-100', tint: 'bg-emerald-500/10', text: 'text-emerald-700', border: 'border-emerald-500', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.25)]', iconBg: 'bg-linear-to-br from-emerald-500 to-emerald-600', badgeBg: 'bg-emerald-500/20' },
+  { bg: 'bg-linear-to-br from-slate-50 to-slate-100', tint: 'bg-slate-500/10', text: 'text-slate-700', border: 'border-slate-500', glow: 'shadow-[0_0_20px_rgba(100,116,139,0.25)]', iconBg: 'bg-linear-to-br from-slate-500 to-slate-600', badgeBg: 'bg-slate-500/20' },
+  { bg: 'bg-linear-to-br from-slate-50 to-slate-100', tint: 'bg-slate-500/10', text: 'text-slate-700', border: 'border-slate-500', glow: 'shadow-[0_0_20px_rgba(100,116,139,0.25)]', iconBg: 'bg-linear-to-br from-slate-500 to-slate-600', badgeBg: 'bg-slate-500/20' },
+];
+
+/**
  * Returns the accent index (0 to length-1) for an item name.
  * -1 if no match (uses default).
  */
@@ -107,6 +139,23 @@ export function getItemAccent(name: string): { iconBg: string; borderLeft: strin
     }
   }
   return DEFAULT_ACCENT;
+}
+
+/**
+ * Returns full card color set based on item accent (for safe-status cards).
+ * Use instead of getStatusColors when status is 'safe'.
+ */
+export function getAccentCardColors(name: string): {
+  bg: string;
+  tint: string;
+  text: string;
+  border: string;
+  glow: string;
+  iconBg: string;
+  badgeBg: string;
+} {
+  const index = getItemAccentIndex(name);
+  return ACCENT_CARD_COLORS[Math.min(index, ACCENT_CARD_COLORS.length - 1)];
 }
 
 /** Local background images per category (blurred behind cards). */

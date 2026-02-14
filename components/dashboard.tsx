@@ -1,27 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ExpiryItemForm } from '@/components/expiry-item-form';
 import { ExpiryItemList } from '@/components/expiry-item-list';
 import { Navbar } from '@/components/navbar';
 import { getItemsAction } from '@/app/actions/item-actions';
 import { ExpiryItemWithStatus } from '@/lib/types';
+import { enrichItemWithStatus } from '@/lib/expiry-utils';
 
 export function Dashboard() {
   const [items, setItems] = useState<ExpiryItemWithStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadItems();
-  }, []);
-
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     setIsLoading(true);
     const data = await getItemsAction();
     setItems(data);
     setIsLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
+
+  const handleItemUpdated = useCallback((updated: ExpiryItemWithStatus) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === updated.id ? enrichItemWithStatus(updated) : i))
+    );
+  }, []);
 
   return (
     <div className="min-h-screen bg-background grain mesh-gradient dot-pattern relative overflow-hidden">
@@ -64,7 +71,11 @@ export function Dashboard() {
               <p className="text-gray-500 mt-4">Loading your items...</p>
             </div>
           ) : (
-            <ExpiryItemList items={items} onItemsChange={loadItems} />
+            <ExpiryItemList
+              items={items}
+              onItemsChange={loadItems}
+              onItemUpdated={handleItemUpdated}
+            />
           )}
         </motion.div>
       </div>

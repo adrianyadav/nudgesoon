@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useLayoutEffect, useRef } from 'react';
+import { useState, useLayoutEffect, useRef, useCallback } from 'react';
 import { useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExpiryItemWithStatus, ExpiryStatus } from '@/lib/types';
@@ -15,6 +15,7 @@ import { CheckCircle2, Clock, AlertTriangle, Trash2, type LucideIcon } from 'luc
 interface ExpiryItemListProps {
   items: ExpiryItemWithStatus[];
   onItemsChange?: () => void;
+  onItemUpdated?: (updated: ExpiryItemWithStatus) => void;
 }
 
 const STATUS_FILTERS: {
@@ -89,7 +90,7 @@ function saveFilters(filters: Record<ExpiryStatus, boolean>) {
   } catch {}
 }
 
-export function ExpiryItemList({ items, onItemsChange }: ExpiryItemListProps) {
+export function ExpiryItemList({ items, onItemsChange, onItemUpdated }: ExpiryItemListProps) {
   const [statusFilters, setStatusFilters] = useState<Record<ExpiryStatus, boolean>>({
     safe: true,
     approaching: true,
@@ -126,17 +127,20 @@ export function ExpiryItemList({ items, onItemsChange }: ExpiryItemListProps) {
     setShowDeleteAll(false);
     await deleteAllItemsAction();
     setIsDeletingAll(false);
-    window.location.reload();
+    onItemsChange?.();
   };
 
-  const handleDelete = async (id: number) => {
-    const formData = new FormData();
-    formData.append('id', id.toString());
-    startTransition(async () => {
-      await deleteItemAction(formData);
-      window.location.reload();
-    });
-  };
+  const handleDelete = useCallback(
+    (id: number) => {
+      const formData = new FormData();
+      formData.append('id', id.toString());
+      startTransition(async () => {
+        await deleteItemAction(formData);
+        onItemsChange?.();
+      });
+    },
+    [onItemsChange, startTransition]
+  );
 
   if (items.length === 0) {
     return (
@@ -273,12 +277,17 @@ export function ExpiryItemList({ items, onItemsChange }: ExpiryItemListProps) {
             <motion.div
               key={item.id}
               layout
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.12 }}
             >
-              <ExpiryItemCard item={item} onDelete={handleDelete} onDateUpdated={onItemsChange} />
+              <ExpiryItemCard
+                item={item}
+                onDelete={handleDelete}
+                onDateUpdated={onItemsChange}
+                onItemUpdated={onItemUpdated}
+              />
             </motion.div>
           ))}
         </AnimatePresence>

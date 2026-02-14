@@ -2,9 +2,9 @@
 
 import { ExpiryItemWithStatus } from '@/lib/types';
 import { getStatusColors } from '@/lib/expiry-utils';
-import { getItemIcon, getItemAccent, getCardImage } from '@/lib/item-icons';
+import { getItemIcon, getItemAccent, getAccentCardColors, getCardImage } from '@/lib/item-icons';
 import Image from 'next/image';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,8 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { updateItemAction } from '@/app/actions/item-actions';
+import { enrichItemWithStatus } from '@/lib/expiry-utils';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Trash2, CheckCircle2, Clock, AlertTriangle, Save } from 'lucide-react';
+import { X, CheckCircle2, Clock, AlertTriangle, Save } from 'lucide-react';
 import type { ExpiryStatus } from '@/lib/types';
 
 const STATUS_ICONS: Record<ExpiryStatus, typeof CheckCircle2> = {
@@ -51,15 +52,17 @@ interface ExpiryItemCardProps {
   item: ExpiryItemWithStatus;
   onDelete: (id: number) => void;
   onDateUpdated?: () => void;
+  onItemUpdated?: (updated: ExpiryItemWithStatus) => void;
 }
 
-export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCardProps) {
+const ExpiryItemCardComponent = ({ item, onDelete, onDateUpdated, onItemUpdated }: ExpiryItemCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [editingField, setEditingField] = useState<'year' | 'month' | 'day' | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const colors = getStatusColors(item.status);
+  const colors =
+    item.status === 'safe' ? getAccentCardColors(item.name) : getStatusColors(item.status);
   const ItemIcon = getItemIcon(item.name);
   const StatusIcon = STATUS_ICONS[item.status];
   const accent = getItemAccent(item.name);
@@ -98,13 +101,21 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
       formData.append('id', item.id.toString());
       formData.append('name', item.name);
       formData.append('expiry_date', expiryDate);
+
+      const updatedItem = enrichItemWithStatus({ ...item, expiry_date: expiryDate });
+      onItemUpdated?.(updatedItem);
       setIsUpdating(true);
-      await updateItemAction(formData);
-      setIsUpdating(false);
       setEditingField(null);
-      onDateUpdated?.();
+      try {
+        const result = await updateItemAction(formData);
+        if (!result?.success) onDateUpdated?.();
+      } catch {
+        onDateUpdated?.();
+      } finally {
+        setIsUpdating(false);
+      }
     },
-    [item.id, item.name, onDateUpdated]
+    [item, onDateUpdated, onItemUpdated]
   );
 
   const handleUpdateDate = useCallback(() => {
@@ -143,7 +154,7 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
       {/* Status tint overlay */}
       <div className={`absolute inset-0 ${colors.tint} pointer-events-none`} />
       {/* White gradient behind text for readability */}
-      <div className="absolute inset-4 rounded-xl bg-gradient-to-b from-white/80 via-white/60 to-white/40 shadow-sm pointer-events-none z-[5]" />
+      <div className="absolute inset-y-5 inset-x-4 rounded-xl bg-gradient-to-b from-white/80 via-white/60 to-white/40 shadow-sm pointer-events-none z-[5]" />
       <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/30 rounded-tr-lg pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/30 rounded-bl-lg pointer-events-none" />
 
@@ -151,8 +162,26 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
         className={`absolute inset-0 bg-white/30 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
       />
 
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3 relative z-10">
-        <div className="flex items-start gap-3">
+      <Button
+        variant="ghost"
+        onClick={() => setShowDeleteConfirm(true)}
+        disabled={isDeleting}
+        className="absolute top-0 right-0 h-6 w-6 p-0 z-10 text-muted-foreground hover:text-white hover:bg-destructive rounded-tr-xl min-w-0 [&_svg]:size-3"
+        aria-label="Delete item"
+      >
+        {isDeleting ? (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            className="size-3 border-2 border-current border-t-transparent rounded-full"
+          />
+        ) : (
+          <X className="size-3" />
+        )}
+      </Button>
+
+      <CardHeader className="flex flex-row items-start justify-between gap-4 px-7 py-6 pb-4 relative z-10">
+        <div className="flex items-start gap-4 min-w-0">
           <div
             className={`flex shrink-0 w-12 h-12 rounded-xl ${accent.iconBg} flex items-center justify-center shadow-sm`}
           >
@@ -163,19 +192,25 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
         <Badge
           variant="outline"
           title={item.status}
-          className={`
+          className={
+              item.status === 'safe'
+                ? 'inline-flex items-center justify-center rounded-full p-1.5 bg-emerald-100 dark:bg-emerald-500/30 border border-green-500 text-green-700 shadow-sm [text-shadow:0_1px_2px_rgba(255,255,255,0.9)]'
+                : `
             inline-flex items-center justify-center rounded-full p-1.5
             ${colors.badgeBg} ${colors.text} border ${colors.border}
             shadow-sm [text-shadow:0_1px_2px_rgba(255,255,255,0.9)]
-          `}
+          `
+          }
         >
-          <StatusIcon className="size-4 shrink-0" />
+          <StatusIcon
+              className={`size-4 shrink-0 ${item.status === 'safe' ? 'text-green-600' : ''}`}
+          />
         </Badge>
       </CardHeader>
 
-      <CardContent className="space-y-4 relative z-10">
+      <CardContent className="space-y-5 px-7 pt-0 pb-6 relative z-10">
         <div
-          className={`space-y-2 ${colors.text} [text-shadow:0_1px_2px_rgba(255,255,255,0.9),0_0_4px_rgba(255,255,255,0.5)]`}
+          className={`space-y-3 ${colors.text} [text-shadow:0_1px_2px_rgba(255,255,255,0.9),0_0_4px_rgba(255,255,255,0.5)]`}
         >
           <div className="flex items-baseline gap-2">
             {editingField === 'year' ? (
@@ -329,28 +364,6 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
               )}
             </Button>
           )}
-          <Button
-            onClick={() => setShowDeleteConfirm(true)}
-            variant="destructive"
-            size="sm"
-            disabled={isDeleting}
-            className="gap-2 flex-1 max-w-fit right-0"
-          >
-            {isDeleting ? (
-              <>
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  className="w-3 h-3 border-2 border-white border-t-transparent rounded-full"
-                />
-                Deleting...
-              </>
-            ) : (
-              <>
-                <Trash2 className="w-3 h-3" />
-              </>
-            )}
-          </Button>
         </div>
       </CardContent>
     </Card>
@@ -359,10 +372,10 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.3 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        transition={{ duration: 0.15 }}
         whileHover={{ scale: 1.02, y: -4 }}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
@@ -380,4 +393,6 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
       />
     </>
   );
-}
+};
+
+export const ExpiryItemCard = memo(ExpiryItemCardComponent);
