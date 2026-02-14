@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.nudgesoon.com"),
+  metadataBase: new URL("https://nudgesoon.com"),
   title: {
     default: `${BRAND_NAME} - Gentle Reminders for Your Items`,
     template: `%s | ${BRAND_NAME}`,
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     title: `${BRAND_NAME} - Gentle Reminders for Your Items`,
     description: "Get timely nudges before your items expire. Track passports, memberships, food, medicine, and more.",
     type: "website",
-    url: "https://www.nudgesoon.com",
+    url: "https://nudgesoon.com",
     images: [
       {
         url: "/og-image",
