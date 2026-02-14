@@ -28,16 +28,16 @@ function getDaysInMonth(year: number, month: number): number {
 interface ExpiryItemCardProps {
   item: ExpiryItemWithStatus;
   onDelete?: (id: number) => void;
-  onDateUpdated?: () => void;
   onItemUpdated?: (updated: ExpiryItemWithStatus) => void;
+  onSaveItem?: (id: number, name: string, expiryDate: string) => Promise<ExpiryItemWithStatus | null>;
   demo?: boolean;
 }
 
 const ExpiryItemCardComponent = ({
   item,
   onDelete,
-  onDateUpdated,
   onItemUpdated,
+  onSaveItem,
   demo = false,
 }: ExpiryItemCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -75,6 +75,7 @@ const ExpiryItemCardComponent = ({
 
   const saveDate = useCallback(
     async (newYear: number, newMonth: number, newDay: number) => {
+      const previousItem = item;
       const lastDay = getDaysInMonth(newYear, newMonth);
       const clampedDay = Math.min(newDay, lastDay);
       const expiryDate = `${newYear}-${String(newMonth).padStart(2, '0')}-${String(clampedDay).padStart(2, '0')}`;
@@ -88,15 +89,28 @@ const ExpiryItemCardComponent = ({
       setIsUpdating(true);
       setIsEditingDate(false);
       try {
-        const result = await updateItemAction(formData);
-        onDateUpdated?.();
+        if (onSaveItem) {
+          const saved = await onSaveItem(item.id, item.name, expiryDate);
+          if (saved) {
+            onItemUpdated?.(enrichItemWithStatus(saved));
+          } else {
+            onItemUpdated?.(previousItem);
+          }
+        } else {
+          const result = await updateItemAction(formData);
+          if (result?.success && result.item) {
+            onItemUpdated?.(enrichItemWithStatus(result.item));
+          } else {
+            onItemUpdated?.(previousItem);
+          }
+        }
       } catch {
-        onDateUpdated?.();
+        onItemUpdated?.(previousItem);
       } finally {
         setIsUpdating(false);
       }
     },
-    [item, onDateUpdated, onItemUpdated]
+    [item, onItemUpdated, onSaveItem]
   );
 
   const handleUpdateDate = useCallback(() => {

@@ -1,11 +1,24 @@
 'use client';
 
+import { useCallback, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { LandingPage } from '@/components/landing-page';
 import { Dashboard } from '@/components/dashboard';
+import { getGuestMode, setGuestMode } from '@/lib/guest-storage';
 
 export default function HomePage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
+  const [guestMode, setGuestModeState] = useState<boolean>(() => getGuestMode());
+
+  const handleTryWithoutAccount = useCallback(() => {
+    setGuestMode(true);
+    setGuestModeState(true);
+  }, []);
+
+  const handleExitGuestMode = useCallback(() => {
+    setGuestMode(false);
+    setGuestModeState(false);
+  }, []);
 
   if (status === 'loading') {
     return (
@@ -17,5 +30,9 @@ export default function HomePage() {
     );
   }
 
-  return status === 'authenticated' ? <Dashboard /> : <LandingPage />;
+  if (status === 'authenticated' || guestMode) {
+    return <Dashboard isGuest={status !== 'authenticated'} onExitGuestMode={handleExitGuestMode} />;
+  }
+
+  return <LandingPage onTryWithoutAccount={handleTryWithoutAccount} />;
 }

@@ -4,6 +4,7 @@
 import { useState, useTransition, useRef, useEffect, useMemo, useCallback, memo } from 'react';
 import { createItemAction, updateItemAction } from '@/app/actions/item-actions';
 import { ExpiryItemWithStatus } from '@/lib/types';
+import { enrichItemWithStatus } from '@/lib/expiry-utils';
 import { getItemIcon, getCardImage, FORM_INITIAL_BACKGROUND, ITEM_SUGGESTIONS } from '@/lib/item-icons';
 import type { LucideIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -216,10 +217,22 @@ function NameAutocomplete({ initialName, hasSelectedBg, onNameChange, onSelect }
 interface ExpiryItemFormProps {
   editingItem?: ExpiryItemWithStatus | null;
   onCancelEdit?: () => void;
-  onItemCreated?: () => void;
+  onItemCreateOptimistic?: (item: ExpiryItemWithStatus) => void;
+  onItemCreateCommitted?: (tempId: number, item: ExpiryItemWithStatus) => void;
+  onItemCreateFailed?: (tempId: number) => void;
+  onCreateItem?: (name: string, expiryDate: string) => Promise<ExpiryItemWithStatus | null>;
+  onUpdateItem?: (id: number, name: string, expiryDate: string) => Promise<ExpiryItemWithStatus | null>;
 }
 
-export function ExpiryItemForm({ editingItem, onCancelEdit, onItemCreated }: ExpiryItemFormProps) {
+export function ExpiryItemForm({
+  editingItem,
+  onCancelEdit,
+  onItemCreateOptimistic,
+  onItemCreateCommitted,
+  onItemCreateFailed,
+  onCreateItem,
+  onUpdateItem,
+}: ExpiryItemFormProps) {
   const [isPending, startTransition] = useTransition();
   const [selectedName, setSelectedName] = useState(editingItem?.name || '');
   const [resetKey, setResetKey] = useState(0);
@@ -252,17 +265,52 @@ export function ExpiryItemForm({ editingItem, onCancelEdit, onItemCreated }: Exp
     startTransition(async () => {
       if (editingItem) {
         formData.append('id', editingItem.id.toString());
-        await updateItemAction(formData);
+        if (onUpdateItem) {
+          await onUpdateItem(editingItem.id, nameRef.current, expiryDate);
+        } else {
+          await updateItemAction(formData);
+        }
         onCancelEdit?.();
       } else {
-        await createItemAction(formData);
-        nameRef.current = '';
-        setSelectedName('');
-        setResetKey((k) => k + 1);
-        setYear(currentYear.toString());
-        setMonth('');
-        setDay('');
-        onItemCreated?.();
+        if (onCreateItem) {
+          const created = await onCreateItem(nameRef.current, expiryDate);
+          if (created) {
+            nameRef.current = '';
+            setSelectedName('');
+            setResetKey((k) => k + 1);
+            setYear(currentYear.toString());
+            setMonth('');
+            setDay('');
+          }
+          return;
+        }
+
+        const nowIso = new Date().toISOString();
+        const tempId = -Date.now();
+        const optimisticItem = enrichItemWithStatus({
+          id: tempId,
+          name: nameRef.current,
+          expiry_date: expiryDate,
+          user_id: null,
+          archived_at: null,
+          created_at: nowIso,
+          updated_at: nowIso,
+        });
+        onItemCreateOptimistic?.(optimisticItem);
+
+        const result = await createItemAction(formData);
+        if (result?.success && result.item) {
+          onItemCreateCommitted?.(tempId, enrichItemWithStatus(result.item));
+          nameRef.current = '';
+          setSelectedName('');
+          setResetKey((k) => k + 1);
+          setYear(currentYear.toString());
+          setMonth('');
+          setDay('');
+          return;
+        }
+
+        onItemCreateFailed?.(tempId);
       }
     });
   };
@@ -432,7 +480,7 @@ export function ExpiryItemForm({ editingItem, onCancelEdit, onItemCreated }: Exp
               <Button
                 type="submit"
                 disabled={isPending}
-                className="bg-gradient-to-r bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all"
+                className="bg-linear-to-r bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all"
               >
                 {isPending ? (
                   <span className="flex items-center gap-2">

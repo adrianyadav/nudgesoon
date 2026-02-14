@@ -42,7 +42,11 @@ const DEMO_ITEMS: ExpiryItemWithStatus[] = [
   createDemoItem('Milk', 'critical', 1),
 ];
 
-export function LandingPage() {
+interface LandingPageProps {
+  onTryWithoutAccount?: () => void;
+}
+
+export function LandingPage({ onTryWithoutAccount }: LandingPageProps) {
   const router = useRouter();
 
   const features = [
@@ -124,6 +128,14 @@ export function LandingPage() {
               }}
             >
               Learn More
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              className="text-lg px-8 py-6"
+              onClick={onTryWithoutAccount}
+            >
+              Try Without Account
             </Button>
           </div>
         </div>

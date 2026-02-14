@@ -44,9 +44,9 @@ export async function createItemAction(formData: FormData) {
 
   try {
     const userId = parseInt(session.user.id);
-    await createItem(name, expiryDate, userId);
+    const item = await createItem(name, expiryDate, userId);
     revalidatePath('/');
-    return { success: true };
+    return { success: true, item };
   } catch (error) {
     console.error('Error creating item:', error);
     return { success: false, error: 'Failed to create item' };
@@ -63,9 +63,12 @@ export async function updateItemAction(formData: FormData) {
   }
 
   try {
-    await updateItem(id, name, expiryDate);
+    const item = await updateItem(id, name, expiryDate);
+    if (!item) {
+      return { success: false, error: 'Item not found' };
+    }
     revalidatePath('/');
-    return { success: true };
+    return { success: true, item };
   } catch (error) {
     console.error('Error updating item:', error);
     return { success: false, error: 'Failed to update item' };

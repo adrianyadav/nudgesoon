@@ -16,7 +16,12 @@ const NAV_LINKS = [
   { href: '/contribute', label: 'Contribute' },
 ];
 
-export function Navbar() {
+interface NavbarProps {
+  isGuest?: boolean;
+  onExitGuestMode?: () => void;
+}
+
+export function Navbar({ isGuest = false, onExitGuestMode }: NavbarProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -92,13 +97,29 @@ export function Navbar() {
               </Button>
             </>
           ) : status === 'loading' ? null : (
-            <Button
-              variant="outline"
-              onClick={() => router.push('/auth/signin')}
-              className="cursor-pointer"
-            >
-              Sign in
-            </Button>
+            <>
+              {isGuest && (
+                <p className="text-xs text-muted-foreground rounded-full bg-muted px-3 py-1">
+                  Guest mode
+                </p>
+              )}
+              {isGuest && onExitGuestMode && (
+                <Button
+                  variant="ghost"
+                  onClick={onExitGuestMode}
+                  className="cursor-pointer"
+                >
+                  Exit guest
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={() => router.push('/auth/signin')}
+                className="cursor-pointer"
+              >
+                Sign in
+              </Button>
+            </>
           )}
         </div>
 
@@ -125,15 +146,24 @@ export function Navbar() {
           role="dialog"
           aria-label="Mobile navigation"
         >
-          <div className="container mx-auto px-4 py-4 max-w-7xl flex flex-col gap-4">
+          <div className="container mx-auto px-4 py-4 max-w-7xl flex flex-col gap-2">
             {status === 'authenticated' && (
-              <Link
-                href="/"
-                onClick={handleMobileLinkClick}
-                className="text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/10 rounded-md px-2 py-2 transition-colors cursor-pointer"
-              >
-                Dashboard
-              </Link>
+              <>
+                <p className="text-sm text-muted-foreground px-2">
+                  Hi,{" "}
+                  <span className="font-medium text-foreground">
+                    {session?.user?.name || session?.user?.email}
+                  </span>{" "}
+                  👋
+                </p>
+                <Link
+                  href="/"
+                  onClick={handleMobileLinkClick}
+                  className="text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/10 rounded-md px-2 py-2 transition-colors cursor-pointer"
+                >
+                  Dashboard
+                </Link>
+              </>
             )}
             {NAV_LINKS.map((link) => (
               <Link
@@ -161,13 +191,32 @@ export function Navbar() {
                 </Button>
               </>
             ) : status === 'loading' ? null : (
-              <Button
-                variant="outline"
-                onClick={handleSignInClick}
-                className="cursor-pointer w-fit"
-              >
-                Sign in
-              </Button>
+              <>
+                {isGuest && (
+                  <p className="text-xs text-muted-foreground px-2 py-1">
+                    Guest mode
+                  </p>
+                )}
+                {isGuest && onExitGuestMode && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      onExitGuestMode();
+                      handleMobileLinkClick();
+                    }}
+                    className="cursor-pointer w-fit"
+                  >
+                    Exit guest
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={handleSignInClick}
+                  className="cursor-pointer w-fit"
+                >
+                  Sign in
+                </Button>
+              </>
             )}
           </div>
         </div>

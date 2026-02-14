@@ -23,6 +23,11 @@ interface ExpiryItemListProps {
   onItemsChange?: () => void;
   onItemUpdated?: (updated: ExpiryItemWithStatus) => void;
   mode?: ListMode;
+  onSaveItem?: (id: number, name: string, expiryDate: string) => Promise<ExpiryItemWithStatus | null>;
+  onArchiveItem?: (id: number) => Promise<void>;
+  onDeleteItem?: (id: number) => Promise<void>;
+  onArchiveAllItems?: () => Promise<void>;
+  onDeleteAllItems?: () => Promise<void>;
 }
 
 const STATUS_FILTERS: {
@@ -102,6 +107,11 @@ export function ExpiryItemList({
   onItemsChange,
   onItemUpdated,
   mode = 'active',
+  onSaveItem,
+  onArchiveItem,
+  onDeleteItem,
+  onArchiveAllItems,
+  onDeleteAllItems,
 }: ExpiryItemListProps) {
   const [statusFilters, setStatusFilters] = useState<Record<ExpiryStatus, boolean>>({
     safe: true,
@@ -109,7 +119,7 @@ export function ExpiryItemList({
     critical: true,
   });
   const hasInitializedFilters = useRef(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [showDeleteAll, setShowDeleteAll] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
 
@@ -140,9 +150,17 @@ export function ExpiryItemList({
     setIsDeletingAll(true);
     setShowDeleteAll(false);
     if (mode === 'active') {
-      await archiveAllItemsAction();
+      if (onArchiveAllItems) {
+        await onArchiveAllItems();
+      } else {
+        await archiveAllItemsAction();
+      }
     } else {
-      await deleteAllItemsAction();
+      if (onDeleteAllItems) {
+        await onDeleteAllItems();
+      } else {
+        await deleteAllItemsAction();
+      }
     }
     setIsDeletingAll(false);
     onItemsChange?.();
@@ -154,14 +172,22 @@ export function ExpiryItemList({
       formData.append('id', id.toString());
       startTransition(async () => {
         if (mode === 'active') {
-          await archiveItemAction(formData);
+          if (onArchiveItem) {
+            await onArchiveItem(id);
+          } else {
+            await archiveItemAction(formData);
+          }
         } else {
-          await deleteItemAction(formData);
+          if (onDeleteItem) {
+            await onDeleteItem(id);
+          } else {
+            await deleteItemAction(formData);
+          }
         }
         onItemsChange?.();
       });
     },
-    [mode, onItemsChange, startTransition]
+    [mode, onArchiveItem, onDeleteItem, onItemsChange, startTransition]
   );
 
   if (items.length === 0) {
@@ -286,8 +312,8 @@ export function ExpiryItemList({
             <ExpiryItemCard
                 item={item}
                 onDelete={handleDelete}
-                onDateUpdated={onItemsChange}
                 onItemUpdated={onItemUpdated}
+                onSaveItem={onSaveItem}
               />
           </div>
         ))}
