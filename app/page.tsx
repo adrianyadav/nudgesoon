@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { LandingPage } from '@/components/landing-page';
 import { Dashboard } from '@/components/dashboard';
@@ -8,14 +8,7 @@ import { getGuestMode, setGuestMode } from '@/lib/guest-storage';
 
 export default function HomePage() {
   const { status } = useSession();
-  const [guestMode, setGuestModeState] = useState(false);
-  const [hasInitializedGuestMode, setHasInitializedGuestMode] = useState(false);
-
-  useEffect(() => {
-    if (status === 'loading') return;
-    setGuestModeState(getGuestMode());
-    setHasInitializedGuestMode(true);
-  }, [status]);
+  const [guestMode, setGuestModeState] = useState<boolean>(() => getGuestMode());
 
   const handleTryWithoutAccount = useCallback(() => {
     setGuestMode(true);
@@ -27,7 +20,7 @@ export default function HomePage() {
     setGuestModeState(false);
   }, []);
 
-  if (status === 'loading' || !hasInitializedGuestMode) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div

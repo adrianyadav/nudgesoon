@@ -119,7 +119,7 @@ export function ExpiryItemList({
     critical: true,
   });
   const hasInitializedFilters = useRef(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [showDeleteAll, setShowDeleteAll] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
 
