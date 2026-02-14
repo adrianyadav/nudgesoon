@@ -10,7 +10,8 @@ export function getPool(): Pool {
   if (!pool) {
     pool = new Pool({
       ...getPostgresPoolConfig(process.env.POSTGRES_URL),
-      max: 20, // Connection pool size
+      // Keep pool small for serverless environments (Vercel + Neon).
+      max: 5,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
     });
@@ -63,44 +64,26 @@ function decryptItem(item: ExpiryItem): ExpiryItem {
 }
 
 // Database operations — always order by expiry date (soonest first)
-export async function getAllItems(userId?: number): Promise<ExpiryItem[]> {
-  let rows: ExpiryItem[];
-  if (userId) {
-    const result = await query<ExpiryItem>(
-      'SELECT * FROM expiry_items WHERE user_id = $1 AND (archived_at IS NULL) ORDER BY expiry_date ASC',
-      [userId]
-    );
-    rows = result.rows;
-  } else {
-    const result = await query<ExpiryItem>(
-      'SELECT * FROM expiry_items WHERE archived_at IS NULL ORDER BY expiry_date ASC'
-    );
-    rows = result.rows;
-  }
-  return rows.map(decryptItem);
+export async function getAllItems(userId: number): Promise<ExpiryItem[]> {
+  const result = await query<ExpiryItem>(
+    'SELECT * FROM expiry_items WHERE user_id = $1 AND archived_at IS NULL ORDER BY expiry_date ASC',
+    [userId]
+  );
+  return result.rows.map(decryptItem);
 }
 
-export async function getArchivedItems(userId?: number): Promise<ExpiryItem[]> {
-  let rows: ExpiryItem[];
-  if (userId) {
-    const result = await query<ExpiryItem>(
-      'SELECT * FROM expiry_items WHERE user_id = $1 AND archived_at IS NOT NULL ORDER BY archived_at DESC',
-      [userId]
-    );
-    rows = result.rows;
-  } else {
-    const result = await query<ExpiryItem>(
-      'SELECT * FROM expiry_items WHERE archived_at IS NOT NULL ORDER BY archived_at DESC'
-    );
-    rows = result.rows;
-  }
-  return rows.map(decryptItem);
+export async function getArchivedItems(userId: number): Promise<ExpiryItem[]> {
+  const result = await query<ExpiryItem>(
+    'SELECT * FROM expiry_items WHERE user_id = $1 AND archived_at IS NOT NULL ORDER BY archived_at DESC',
+    [userId]
+  );
+  return result.rows.map(decryptItem);
 }
 
-export async function archiveItem(id: number): Promise<boolean> {
+export async function archiveItem(id: number, userId: number): Promise<boolean> {
   const result = await query(
-    'UPDATE expiry_items SET archived_at = NOW() WHERE id = $1',
-    [id]
+    'UPDATE expiry_items SET archived_at = NOW() WHERE id = $1 AND user_id = $2',
+    [id, userId]
   );
   return (result.rowCount ?? 0) > 0;
 }
@@ -138,21 +121,22 @@ export async function createItem(
 export async function updateItem(
   id: number,
   name: string,
-  expiryDate: string
+  expiryDate: string,
+  userId: number
 ): Promise<ExpiryItem | null> {
   const encryptedName = encrypt(name);
   const result = await query<ExpiryItem>(
-    'UPDATE expiry_items SET name = $1, expiry_date = $2 WHERE id = $3 RETURNING *',
-    [encryptedName, expiryDate, id]
+    'UPDATE expiry_items SET name = $1, expiry_date = $2 WHERE id = $3 AND user_id = $4 RETURNING *',
+    [encryptedName, expiryDate, id, userId]
   );
   const row = result.rows[0];
   return row ? decryptItem(row) : null;
 }
 
-export async function deleteItem(id: number): Promise<boolean> {
+export async function deleteItem(id: number, userId: number): Promise<boolean> {
   const result = await query(
-    'DELETE FROM expiry_items WHERE id = $1',
-    [id]
+    'DELETE FROM expiry_items WHERE id = $1 AND user_id = $2',
+    [id, userId]
   );
   return (result.rowCount ?? 0) > 0;
 }
@@ -171,4 +155,9 @@ export async function deleteAllArchivedItems(userId: number): Promise<number> {
     [userId]
   );
   return result.rowCount ?? 0;
+}
+
+export async function checkDatabaseHealth(): Promise<boolean> {
+  await query<QueryResultRow>('SELECT 1');
+  return true;
 }
