@@ -69,16 +69,6 @@ export const ITEM_ACCENT_COLORS: { iconBg: string; borderLeft: string }[] = [
 
 const DEFAULT_ACCENT = ITEM_ACCENT_COLORS[ITEM_ACCENT_COLORS.length - 1];
 
-/** Card background pattern classes - vary by item for visual differentiation */
-const CARD_PATTERN_CLASSES = [
-  'card-pattern-dots',
-  'card-pattern-stripes',
-  'card-pattern-waves',
-  'card-pattern-cross',
-  'card-pattern-hex',
-  'card-pattern-noise',
-] as const;
-
 /**
  * Returns the accent index (0 to length-1) for an item name.
  * -1 if no match (uses default).
@@ -91,15 +81,6 @@ export function getItemAccentIndex(name: string): number {
     }
   }
   return ICON_MAP.length; /* default index */
-}
-
-/**
- * Returns the card background pattern class for an item name.
- * Maps accent index to one of 6 patterns so different item types get different looks.
- */
-export function getCardPattern(name: string): string {
-  const index = getItemAccentIndex(name);
-  return CARD_PATTERN_CLASSES[index % CARD_PATTERN_CLASSES.length];
 }
 
 /**
@@ -126,6 +107,36 @@ export function getItemAccent(name: string): { iconBg: string; borderLeft: strin
     }
   }
   return DEFAULT_ACCENT;
+}
+
+/** Local background images per category (blurred behind cards). */
+const CARD_IMAGES: string[] = [
+  /* laptop/computer */ '/images/cards/laptop.jpg',
+  /* phone/mobile    */ '/images/cards/phone.jpg',
+  /* passport/docs   */ '/images/cards/passport.jpg',
+  /* book/license    */ '/images/cards/book.jpg',
+  /* milk/dairy      */ '/images/cards/milk.jpg',
+  /* gym/fitness     */ '/images/cards/gym.jpg',
+  /* medicine/pill   */ '/images/cards/medicine.jpg',
+  /* car/vehicle     */ '/images/cards/car.jpg',
+  /* insurance       */ '/images/cards/insurance.jpg',
+  /* streaming/tv    */ '/images/cards/streaming.jpg',
+  /* flight/travel   */ '/images/cards/flight.jpg',
+  /* food/groceries  */ '/images/cards/food.jpg',
+  /* wine/alcohol    */ '/images/cards/wine.jpg',
+  /* water/filter    */ '/images/cards/water.jpg',
+  /* card/credit     */ '/images/cards/credit-card.jpg',
+];
+
+const DEFAULT_CARD_IMAGE = '/images/cards/default.jpg';
+
+/**
+ * Returns the Unsplash background image URL for an item name.
+ * Matches the same keyword logic as getItemIcon/getItemAccent.
+ */
+export function getCardImage(name: string): string {
+  const index = getItemAccentIndex(name);
+  return index < CARD_IMAGES.length ? CARD_IMAGES[index] : DEFAULT_CARD_IMAGE;
 }
 
 /** Common item names for autocomplete suggestions (order matches icon priority) */

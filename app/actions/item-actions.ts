@@ -6,6 +6,7 @@ import {
   createItem,
   updateItem,
   deleteItem,
+  deleteAllItems,
 } from '@/lib/db';
 import { enrichItemWithStatus } from '@/lib/expiry-utils';
 import { ExpiryItemWithStatus } from '@/lib/types';
@@ -58,6 +59,23 @@ export async function updateItemAction(formData: FormData) {
   } catch (error) {
     console.error('Error updating item:', error);
     return { success: false, error: 'Failed to update item' };
+  }
+}
+
+export async function deleteAllItemsAction() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  try {
+    const userId = parseInt(session.user.id);
+    const count = await deleteAllItems(userId);
+    revalidatePath('/');
+    return { success: true, count };
+  } catch (error) {
+    console.error('Error deleting all items:', error);
+    return { success: false, error: 'Failed to delete items' };
   }
 }
 

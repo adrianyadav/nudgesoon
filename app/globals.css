@@ -234,6 +234,12 @@ body {
   animation: shimmer 3s infinite;
 }
 
+/* Dialog backdrop */
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+}
+
 :root {
   --radius: 0.75rem;
   --background: oklch(0.98 0.005 240);
@@ -248,8 +254,8 @@ body {
   --secondary-foreground: oklch(0.25 0.015 240);
   --muted: oklch(0.96 0.005 240);
   --muted-foreground: oklch(0.5 0.01 240);
-  --accent: oklch(0.65 0.18 200);
-  --accent-foreground: oklch(1 0 0);
+  --accent: oklch(0.94 0.02 240);
+  --accent-foreground: oklch(0.25 0.015 240);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.91 0.008 240);
   --input: oklch(0.91 0.008 240);

@@ -5,11 +5,12 @@ import { useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExpiryItemWithStatus, ExpiryStatus } from '@/lib/types';
 import { ExpiryItemCard } from './expiry-item-card';
-import { deleteItemAction } from '@/app/actions/item-actions';
+import { deleteItemAction, deleteAllItemsAction } from '@/app/actions/item-actions';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Clock, AlertTriangle, type LucideIcon } from 'lucide-react';
+import { CheckCircle2, Clock, AlertTriangle, Trash2, type LucideIcon } from 'lucide-react';
 
 interface ExpiryItemListProps {
   items: ExpiryItemWithStatus[];
@@ -28,22 +29,22 @@ const STATUS_FILTERS: {
     status: 'critical',
     label: 'Critical',
     icon: AlertTriangle,
-    activeClass: 'bg-red-500/20 text-red-800 border-red-500 ring-2 ring-red-500/30 dark:bg-red-500/25 dark:text-red-200 dark:border-red-500/80 hover:bg-red-500/30 hover:text-red-900 dark:hover:bg-red-500/35 dark:hover:text-red-100 hover:border-transparent hover:ring-0 hover:outline-none',
-    badgeActiveClass: 'bg-red-500/30 text-red-800 dark:text-red-200',
+    activeClass: 'bg-red-100 text-red-800 border-red-300 ring-2 ring-red-200 hover:bg-red-200 hover:text-red-900 hover:border-red-300',
+    badgeActiveClass: 'bg-red-200 text-red-800',
   },
   {
     status: 'approaching',
     label: 'Approaching',
     icon: Clock,
-    activeClass: 'bg-amber-500/20 text-amber-800 border-amber-500 ring-2 ring-amber-500/30 dark:bg-amber-500/25 dark:text-amber-200 dark:border-amber-500/80 hover:bg-amber-500/30 hover:text-amber-900 dark:hover:bg-amber-500/35 dark:hover:text-amber-100 hover:border-transparent hover:ring-0 hover:outline-none',
-    badgeActiveClass: 'bg-amber-500/30 text-amber-800 dark:text-amber-200',
+    activeClass: 'bg-amber-100 text-amber-800 border-amber-300 ring-2 ring-amber-200 hover:bg-amber-200 hover:text-amber-900 hover:border-amber-300',
+    badgeActiveClass: 'bg-amber-200 text-amber-800',
   },
   {
     status: 'safe',
     label: 'Safe',
     icon: CheckCircle2,
-    activeClass: 'bg-green-500/20 text-green-800 border-green-500 ring-2 ring-green-500/30 dark:bg-green-500/25 dark:text-green-200 dark:border-green-500/80 hover:bg-green-500/30 hover:text-green-900 dark:hover:bg-green-500/35 dark:hover:text-green-100 hover:border-transparent hover:ring-0 hover:outline-none',
-    badgeActiveClass: 'bg-green-500/30 text-green-800 dark:text-green-200',
+    activeClass: 'bg-green-100 text-green-800 border-green-300 ring-2 ring-green-200 hover:bg-green-200 hover:text-green-900 hover:border-green-300',
+    badgeActiveClass: 'bg-green-200 text-green-800',
   },
   
 ];
@@ -64,6 +65,30 @@ function getDefaultFilters(items: ExpiryItemWithStatus[]): Record<ExpiryStatus, 
   return { safe: true, approaching: false, critical: false };
 }
 
+const FILTERS_STORAGE_KEY = 'nudge-status-filters';
+
+function loadSavedFilters(): Record<ExpiryStatus, boolean> | null {
+  try {
+    const saved = localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    if (
+      typeof parsed.safe === 'boolean' &&
+      typeof parsed.approaching === 'boolean' &&
+      typeof parsed.critical === 'boolean'
+    ) {
+      return parsed;
+    }
+  } catch {}
+  return null;
+}
+
+function saveFilters(filters: Record<ExpiryStatus, boolean>) {
+  try {
+    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
+  } catch {}
+}
+
 export function ExpiryItemList({ items, onItemsChange }: ExpiryItemListProps) {
   const [statusFilters, setStatusFilters] = useState<Record<ExpiryStatus, boolean>>({
     safe: true,
@@ -72,12 +97,15 @@ export function ExpiryItemList({ items, onItemsChange }: ExpiryItemListProps) {
   });
   const hasInitializedFilters = useRef(false);
   const [isPending, startTransition] = useTransition();
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   useLayoutEffect(() => {
     if (items.length === 0) {
       hasInitializedFilters.current = false;
     } else if (!hasInitializedFilters.current) {
-      setStatusFilters(getDefaultFilters(items));
+      const saved = loadSavedFilters();
+      setStatusFilters(saved ?? getDefaultFilters(items));
       hasInitializedFilters.current = true;
     }
   }, [items]);
@@ -86,7 +114,19 @@ export function ExpiryItemList({ items, onItemsChange }: ExpiryItemListProps) {
   const filteredItems = sortedItems.filter((item) => statusFilters[item.status]);
 
   const toggleFilter = (status: ExpiryStatus) => {
-    setStatusFilters((prev) => ({ ...prev, [status]: !prev[status] }));
+    setStatusFilters((prev) => {
+      const next = { ...prev, [status]: !prev[status] };
+      saveFilters(next);
+      return next;
+    });
+  };
+
+  const handleDeleteAll = async () => {
+    setIsDeletingAll(true);
+    setShowDeleteAll(false);
+    await deleteAllItemsAction();
+    setIsDeletingAll(false);
+    window.location.reload();
   };
 
   const handleDelete = async (id: number) => {
@@ -172,12 +212,12 @@ export function ExpiryItemList({ items, onItemsChange }: ExpiryItemListProps) {
         <p className="text-xs text-gray-500">{criticalCount} critical</p>
       </motion.div>
 
-      {/* Status filters */}
+      {/* Status filters & actions */}
       <motion.div
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="flex flex-wrap gap-2"
+        className="flex flex-wrap items-center gap-2"
       >
         {STATUS_FILTERS.map(({ status, label, icon: Icon, activeClass, badgeActiveClass }) => (
           <Button
@@ -188,7 +228,7 @@ export function ExpiryItemList({ items, onItemsChange }: ExpiryItemListProps) {
             className={`border transition-all duration-200 ${
               statusFilters[status]
                 ? activeClass
-                : 'border-border bg-muted/50 text-muted-foreground opacity-60 hover:opacity-100 hover:bg-muted/80 hover:border-transparent hover:ring-0 hover:outline-none'
+                : 'border-border bg-muted/50 text-muted-foreground opacity-60 hover:opacity-100 hover:bg-muted hover:text-foreground'
             }`}
             onClick={() => toggleFilter(status)}
           >
@@ -204,7 +244,28 @@ export function ExpiryItemList({ items, onItemsChange }: ExpiryItemListProps) {
             </Badge>
           </Button>
         ))}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={isDeletingAll}
+          onClick={() => setShowDeleteAll(true)}
+          className="ml-auto text-muted-foreground hover:text-destructive"
+        >
+          <Trash2 className="size-4 shrink-0" />
+          <span className="hidden sm:inline">Delete All</span>
+        </Button>
       </motion.div>
+
+      <ConfirmDialog
+        open={showDeleteAll}
+        onClose={() => setShowDeleteAll(false)}
+        onConfirm={handleDeleteAll}
+        title="Delete all items?"
+        description={`This will permanently remove all ${items.length} items. This action cannot be undone.`}
+        confirmLabel="Delete All"
+        isPending={isDeletingAll}
+      />
 
       <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <AnimatePresence mode="popLayout">

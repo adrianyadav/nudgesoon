@@ -1,13 +1,20 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { NudgeIcon } from '@/components/nudge-icon';
 import { useRouter } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 
 export function Navbar() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/' });
+  };
 
   return (
     <motion.nav
@@ -22,13 +29,32 @@ export function Navbar() {
           <span className="text-xl font-bold text-foreground">Nudge</span>
         </Link>
 
-        <Button
-          variant="outline"
-          onClick={() => router.push('/auth/signin')}
-          className="cursor-pointer"
-        >
-          Log in
-        </Button>
+        {status === 'authenticated' ? (
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden md:block">
+              <p className="text-sm text-muted-foreground">Welcome back, <span className="font-medium text-foreground">
+                {session?.user?.name || session?.user?.email}
+              </span></p>
+            </div>
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              size="sm"
+              className="cursor-pointer border-border gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden md:inline">Sign Out</span>
+            </Button>
+          </div>
+        ) : status === 'loading' ? null : (
+          <Button
+            variant="outline"
+            onClick={() => router.push('/auth/signin')}
+            className="cursor-pointer"
+          >
+            Sign in
+          </Button>
+        )}
       </div>
     </motion.nav>
   );

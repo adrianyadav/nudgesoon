@@ -10,7 +10,7 @@ export function getPool(): Pool {
       connectionString: process.env.POSTGRES_URL,
       ssl: {
         rejectUnauthorized: false, // Neon requires SSL
-      },
+      },  
       max: 20, // Connection pool size
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
@@ -101,4 +101,12 @@ export async function deleteItem(id: number): Promise<boolean> {
     [id]
   );
   return (result.rowCount ?? 0) > 0;
+}
+
+export async function deleteAllItems(userId: number): Promise<number> {
+  const result = await query(
+    'DELETE FROM expiry_items WHERE user_id = $1',
+    [userId]
+  );
+  return result.rowCount ?? 0;
 }

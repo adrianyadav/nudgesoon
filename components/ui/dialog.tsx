@@ -9,11 +9,12 @@ interface DialogProps {
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  showCloseButton?: boolean;
 }
 
 const FOCUSABLE = 'input:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-function Dialog({ open, onClose, children, className }: DialogProps) {
+function Dialog({ open, onClose, children, className, showCloseButton = true }: DialogProps) {
   const ref = React.useRef<HTMLDialogElement>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
 
@@ -55,11 +56,11 @@ function Dialog({ open, onClose, children, className }: DialogProps) {
       onKeyDown={handleKeyDown}
       className={cn(
         'fixed inset-0 z-50 w-full h-full max-w-none max-h-none p-4 overflow-hidden',
-        'border-0 outline-none',
-        'backdrop:bg-black/50 backdrop:backdrop-blur-sm',
+        'border-0 outline-none bg-transparent',
         'grid place-items-center',
         className
       )}
+      style={{ backgroundColor: 'transparent' }}
     >
       <div
         ref={contentRef}
@@ -67,14 +68,16 @@ function Dialog({ open, onClose, children, className }: DialogProps) {
         className="relative max-w-lg w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute top-2 right-2 z-10 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        {showCloseButton && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute top-2 right-2 z-10 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
         {children}
       </div>
     </dialog>

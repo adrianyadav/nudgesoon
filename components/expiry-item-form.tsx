@@ -30,7 +30,7 @@ export function ExpiryItemForm({ editingItem, onCancelEdit, onItemCreated }: Exp
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const editDate = editingItem ? new Date(editingItem.expiry_date) : null;
-  const [year, setYear] = useState(editDate ? editDate.getFullYear().toString() : '');
+  const [year, setYear] = useState(editDate ? editDate.getFullYear().toString() : new Date().getFullYear().toString());
   const [month, setMonth] = useState(editDate ? (editDate.getMonth() + 1).toString() : '');
   const [day, setDay] = useState(editDate ? editDate.getDate().toString() : '');
 
@@ -64,7 +64,7 @@ export function ExpiryItemForm({ editingItem, onCancelEdit, onItemCreated }: Exp
       } else {
         await createItemAction(formData);
         setName('');
-        setYear('');
+        setYear(currentYear.toString());
         setMonth('');
         setDay('');
         onItemCreated?.();
@@ -123,7 +123,7 @@ export function ExpiryItemForm({ editingItem, onCancelEdit, onItemCreated }: Exp
         {/* Subtle shimmer strip at top */}
         <div className="absolute top-0 left-0 right-0 h-1 shimmer pointer-events-none rounded-t-lg" />
         <CardHeader>
-          <CardTitle className="text-2xl bg-gradient-to-r bg-primary bg-clip-text text-transparent">
+          <CardTitle className="text-2xl bg-linear-to-r bg-primary bg-clip-text text-transparent">
             {editingItem ? 'Edit Item' : 'Add Something New'}
           </CardTitle>
         </CardHeader>
@@ -170,10 +170,10 @@ export function ExpiryItemForm({ editingItem, onCancelEdit, onItemCreated }: Exp
                             setShowSuggestions(false);
                           }}
                         >
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary group-hover:text-white">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                             <SuggestionIcon className="h-4 w-4 shrink-0" />
                           </span>
-                          <span className="group-hover:text-accent-foreground">{suggestion}</span>
+                          <span>{suggestion}</span>
                         </li>
                       );
                     })}
@@ -312,7 +312,7 @@ export function ExpiryItemForm({ editingItem, onCancelEdit, onItemCreated }: Exp
                   type="button"
                   variant="outline"
                   onClick={onCancelEdit}
-                  className="border-border hover:bg-background"
+                  className="border-border"
                 >
                   Cancel
                 </Button>

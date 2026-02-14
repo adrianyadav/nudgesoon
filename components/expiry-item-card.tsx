@@ -2,7 +2,8 @@
 
 import { ExpiryItemWithStatus } from '@/lib/types';
 import { getStatusColors } from '@/lib/expiry-utils';
-import { getItemIcon, getItemAccent, getCardPattern } from '@/lib/item-icons';
+import { getItemIcon, getItemAccent, getCardImage } from '@/lib/item-icons';
+import Image from 'next/image';
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { updateItemAction } from '@/app/actions/item-actions';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Trash2, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
 import type { ExpiryStatus } from '@/lib/types';
 
@@ -53,6 +55,7 @@ interface ExpiryItemCardProps {
 
 export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [editingField, setEditingField] = useState<'year' | 'month' | 'day' | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -60,7 +63,7 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
   const ItemIcon = getItemIcon(item.name);
   const StatusIcon = STATUS_ICONS[item.status];
   const accent = getItemAccent(item.name);
-  const cardPattern = getCardPattern(item.name);
+  const cardImage = getCardImage(item.name);
 
   const expDate = new Date(item.expiry_date);
   const year = expDate.getFullYear();
@@ -91,10 +94,9 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
   );
 
   const handleDelete = async () => {
-    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
-      setIsDeleting(true);
-      await onDelete(item.id);
-    }
+    setIsDeleting(true);
+    setShowDeleteConfirm(false);
+    await onDelete(item.id);
   };
 
   const card = (
@@ -107,10 +109,19 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
         overflow-hidden
       `}
     >
+      {/* Blurred category background image */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <Image
+          src={cardImage}
+          alt=""
+          fill
+          className="object-cover blur-sm scale-105 opacity-30"
+          sizes="(max-width: 768px) 100vw, 400px"
+        />
+        <div className="absolute inset-0 bg-linear-to-br from-black/20 via-black/10 to-transparent" />
+      </div>
       {/* Status tint overlay */}
       <div className={`absolute inset-0 ${colors.tint} pointer-events-none`} />
-      {/* Item-specific background pattern */}
-      <div className={`absolute inset-0 ${cardPattern} opacity-30 pointer-events-none`} />
       <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/30 rounded-tr-lg pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/30 rounded-bl-lg pointer-events-none" />
 
@@ -185,7 +196,7 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
               <button
                 type="button"
                 onClick={() => setEditingField('year')}
-                className="text-4xl font-bold cursor-pointer hover:underline hover:bg-white/20 rounded px-1 -mx-1 transition-colors"
+                className="text-4xl font-bold cursor-pointer hover:underline hover:bg-foreground/10 rounded px-1 -mx-1 transition-colors"
               >
                 {year}
               </button>
@@ -213,7 +224,7 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
                 <button
                   type="button"
                   onClick={() => setEditingField('month')}
-                  className="cursor-pointer hover:underline hover:bg-white/20 rounded px-1 -mx-1 transition-colors"
+                  className="cursor-pointer hover:underline hover:bg-foreground/10 rounded px-1 -mx-1 transition-colors"
                 >
                   {month}
                 </button>
@@ -240,7 +251,7 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
                 <button
                   type="button"
                   onClick={() => setEditingField('day')}
-                  className="cursor-pointer hover:underline hover:bg-white/20 rounded px-1 -mx-1 transition-colors"
+                  className="cursor-pointer hover:underline hover:bg-foreground/10 rounded px-1 -mx-1 transition-colors"
                 >
                   {day}
                 </button>
@@ -272,7 +283,7 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
           transition={{ delay: 0.2 }}
         >
           <Button
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             variant="destructive"
             size="sm"
             disabled={isDeleting}
@@ -299,16 +310,27 @@ export function ExpiryItemCard({ item, onDelete, onDateUpdated }: ExpiryItemCard
   );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ scale: 1.02, y: -4 }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
-    >
-      {card}
-    </motion.div>
+    <>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ duration: 0.3 }}
+        whileHover={{ scale: 1.02, y: -4 }}
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
+      >
+        {card}
+      </motion.div>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title={`Delete "${item.name}"?`}
+        description="This item will be permanently removed. This action cannot be undone."
+        confirmLabel="Delete"
+        isPending={isDeleting}
+      />
+    </>
   );
 }
