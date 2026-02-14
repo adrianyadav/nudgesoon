@@ -17,14 +17,22 @@ import { auth } from '@/lib/auth';
 
 export async function getItemsAction(): Promise<ExpiryItemWithStatus[]> {
   const session = await auth();
-  const userId = session?.user?.id ? parseInt(session.user.id) : undefined;
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  const userId = parseInt(session.user.id);
   const items = await getAllItems(userId);
   return items.map(enrichItemWithStatus);
 }
 
 export async function getArchivedItemsAction(): Promise<ExpiryItemWithStatus[]> {
   const session = await auth();
-  const userId = session?.user?.id ? parseInt(session.user.id) : undefined;
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  const userId = parseInt(session.user.id);
   const items = await getArchivedItems(userId);
   return items.map(enrichItemWithStatus);
 }
@@ -54,6 +62,11 @@ export async function createItemAction(formData: FormData) {
 }
 
 export async function updateItemAction(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
   const id = parseInt(formData.get('id') as string);
   const name = formData.get('name') as string;
   const expiryDate = formData.get('expiry_date') as string;
@@ -63,9 +76,10 @@ export async function updateItemAction(formData: FormData) {
   }
 
   try {
-    const item = await updateItem(id, name, expiryDate);
+    const userId = parseInt(session.user.id);
+    const item = await updateItem(id, name, expiryDate, userId);
     if (!item) {
-      return { success: false, error: 'Item not found' };
+      return { success: false, error: 'Item not found or access denied' };
     }
     revalidatePath('/');
     return { success: true, item };
@@ -76,6 +90,11 @@ export async function updateItemAction(formData: FormData) {
 }
 
 export async function archiveItemAction(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
   const id = parseInt(formData.get('id') as string);
 
   if (!id) {
@@ -83,7 +102,11 @@ export async function archiveItemAction(formData: FormData) {
   }
 
   try {
-    await archiveItem(id);
+    const userId = parseInt(session.user.id);
+    const archived = await archiveItem(id, userId);
+    if (!archived) {
+      return { success: false, error: 'Item not found or access denied' };
+    }
     revalidatePath('/');
     return { success: true };
   } catch (error) {
@@ -127,6 +150,11 @@ export async function deleteAllItemsAction() {
 }
 
 export async function deleteItemAction(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
   const id = parseInt(formData.get('id') as string);
 
   if (!id) {
@@ -134,7 +162,11 @@ export async function deleteItemAction(formData: FormData) {
   }
 
   try {
-    await deleteItem(id);
+    const userId = parseInt(session.user.id);
+    const deleted = await deleteItem(id, userId);
+    if (!deleted) {
+      return { success: false, error: 'Item not found or access denied' };
+    }
     revalidatePath('/');
     return { success: true };
   } catch (error) {

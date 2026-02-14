@@ -131,3 +131,27 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Production Notes (Vercel + Neon)
+
+- Use Neon pooled connection string (`-pooler`) for `POSTGRES_URL` in production.
+- Keep serverless DB pool size small (configured in `lib/db.ts`) to reduce connection pressure.
+- Ensure `AUTH_SECRET`, OAuth credentials, and `ENCRYPTION_KEY` are set in Vercel project settings.
+
+## Uptime and Error Monitoring
+
+- Health endpoint: `GET /api/health`
+  - Returns `200` when app + DB are healthy.
+  - Returns `503` when DB health check fails.
+- Point your uptime monitor (e.g. Better Stack/UptimeRobot) at:
+  - `https://your-domain.com/api/health`
+- Recommended alert threshold:
+  - Alert after 2-3 consecutive failures to reduce noise from transient cold starts.
+
+## Public Launch Messaging
+
+If launching on free tiers, set expectations in your post:
+
+- Mention this is an early release/beta.
+- Call out that occasional first-load slowness may happen during low-traffic wake-ups.
+- Share a support/contact channel so users can report issues quickly.
