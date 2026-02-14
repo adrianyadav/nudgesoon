@@ -74,6 +74,47 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser. Sign in to access your dashboard and start adding expiry items.
 
+## End-to-End Testing (Playwright)
+
+Install Playwright browsers once:
+
+```bash
+npx playwright install chromium
+```
+
+Run the test suite:
+
+```bash
+npm run test:e2e
+```
+
+Useful variants:
+
+```bash
+npm run test:e2e:ui
+npm run test:e2e:headed
+npm run test:e2e:debug
+```
+
+Run against explicit environments:
+
+```bash
+npm run test:e2e:local
+npm run test:e2e:prod
+```
+
+For authenticated E2E tests, you can override credentials if needed:
+
+```bash
+E2E_EMAIL=demo@example.com E2E_PASSWORD=demo1234 npm run test:e2e:local
+```
+
+The create/update item flow mutates data, so it is skipped on prod by default. To include it on prod:
+
+```bash
+E2E_ALLOW_PROD_MUTATIONS=true E2E_EMAIL=demo@example.com E2E_PASSWORD=demo1234 npm run test:e2e:prod
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

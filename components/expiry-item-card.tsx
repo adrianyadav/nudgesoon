@@ -115,6 +115,8 @@ const ExpiryItemCardComponent = ({
   const card = (
     <Card
       textured
+      data-testid="expiry-item-card"
+      data-item-name={item.name}
       className={`
         group relative transition-all duration-300
         ${colors.bg} ${colors.glow}
@@ -136,7 +138,7 @@ const ExpiryItemCardComponent = ({
       {/* Status tint overlay */}
       <div className={`absolute inset-0 ${colors.tint} pointer-events-none`} />
       {/* White gradient behind text for readability */}
-      <div className="absolute inset-y-5 inset-x-4 rounded-xl bg-gradient-to-b from-white/80 via-white/60 to-white/40 shadow-sm pointer-events-none z-[5]" />
+      <div className="absolute inset-y-5 inset-x-4 rounded-xl bg-linear-to-b from-white/80 via-white/60 to-white/40 shadow-sm pointer-events-none z-5" />
       <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/30 rounded-tr-lg pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/30 rounded-bl-lg pointer-events-none" />
 
@@ -150,7 +152,7 @@ const ExpiryItemCardComponent = ({
           onClick={() => setShowDeleteConfirm(true)}
           disabled={isDeleting}
           className="absolute top-0 right-0 h-6 w-6 p-0 z-10 text-muted-foreground hover:text-white hover:bg-destructive rounded-tr-xl min-w-0 [&_svg]:size-3"
-          aria-label="Delete item"
+          aria-label={`Delete ${item.name}`}
         >
           {isDeleting ? (
             <div
@@ -242,7 +244,7 @@ const ExpiryItemCardComponent = ({
                 type="button"
                 onClick={() => setIsEditingDate(true)}
                 className="flex flex-col items-start gap-1 min-h-[48px] min-w-[120px] justify-center -m-1 p-1 rounded-lg cursor-pointer hover:bg-foreground/10 active:bg-foreground/15 transition-colors text-left"
-                aria-label="Edit expiry date"
+                aria-label={`Edit expiry date for ${item.name}`}
               >
                 <span className="text-4xl font-bold">{localYear}</span>
                 <span className="text-lg font-medium opacity-75">
