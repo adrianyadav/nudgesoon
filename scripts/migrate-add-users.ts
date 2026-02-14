@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { getPostgresPoolConfig } from '../lib/postgres-config';
 
 // Load environment variables from .env.local
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
@@ -8,12 +9,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 async function migrate() {
   console.log('🚀 Running migration to add users...\n');
 
-  const pool = new Pool({
-    connectionString: process.env.POSTGRES_URL,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  });
+  const pool = new Pool(getPostgresPoolConfig(process.env.POSTGRES_URL));
 
   try {
     // Test connection

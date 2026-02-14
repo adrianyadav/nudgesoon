@@ -55,13 +55,14 @@ jobs:
           --health-retries 5
 
     env:
-      POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/nudgesoon_test
-      AUTH_SECRET: test-auth-secret-for-ci-only
-      AUTH_URL: http://localhost:3000
-      ENCRYPTION_KEY: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
-      E2E_EMAIL: demo@example.com
-      E2E_PASSWORD: demo1234
-      PLAYWRIGHT_BASE_URL: http://localhost:3000
+      # Use repo secret when present; otherwise fallback to local CI Postgres service.
+      POSTGRES_URL: ${{ secrets.POSTGRES_URL_NONPROD != '' && secrets.POSTGRES_URL_NONPROD || 'postgresql://postgres:postgres@localhost:5432/nudgesoon_test' }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET_CI }}
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY_CI }}
+      AUTH_URL: ${{ vars.AUTH_URL_CI != '' && vars.AUTH_URL_CI || 'http://localhost:3000' }}
+      E2E_EMAIL: ${{ vars.E2E_EMAIL_CI != '' && vars.E2E_EMAIL_CI || 'demo@example.com' }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD_CI }}
+      PLAYWRIGHT_BASE_URL: ${{ vars.PLAYWRIGHT_BASE_URL_CI != '' && vars.PLAYWRIGHT_BASE_URL_CI || 'http://localhost:3000' }}
 
     steps:
       - name: Checkout
@@ -75,6 +76,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Validate required CI secrets
+        run: |
+          [ -n "$AUTH_SECRET" ] || (echo "Missing secret: AUTH_SECRET_CI" && exit 1)
+          [ -n "$ENCRYPTION_KEY" ] || (echo "Missing secret: ENCRYPTION_KEY_CI" && exit 1)
+          [ -n "$E2E_PASSWORD" ] || (echo "Missing secret: E2E_PASSWORD_CI" && exit 1)
 
       - name: Setup database schema
         run: npm run setup-db
