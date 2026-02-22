@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { LandingPage } from '@/components/landing-page';
 import { Dashboard } from '@/components/dashboard';
@@ -31,7 +31,15 @@ export default function HomePage() {
   }
 
   if (status === 'authenticated' || guestMode) {
-    return <Dashboard isGuest={status !== 'authenticated'} onExitGuestMode={handleExitGuestMode} />;
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="w-16 h-16 border-4 border-border border-t-primary rounded-full animate-spin" />
+        </div>
+      }>
+        <Dashboard isGuest={status !== 'authenticated'} onExitGuestMode={handleExitGuestMode} />
+      </Suspense>
+    );
   }
 
   return <LandingPage onTryWithoutAccount={handleTryWithoutAccount} />;

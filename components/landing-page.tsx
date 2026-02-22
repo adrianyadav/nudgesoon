@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Calendar, Sparkles, Bell, Shield } from 'lucide-react';
 import { NudgeIcon } from '@/components/nudge-icon';
 import { BRAND_NAME } from '@/lib/constants';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { features as appFeatures } from '@/lib/features';
 import { ExpiryItemCard } from '@/components/expiry-item-card';
 import type { ExpiryItemWithStatus, ExpiryStatus } from '@/lib/types';
 
@@ -151,6 +153,56 @@ export function LandingPage({ onTryWithoutAccount }: LandingPageProps) {
         </div>
       </div>
 
+      {appFeatures.chromeExtension && (
+        <>
+          {/* Extension Section */}
+          <div className="container mx-auto px-4 py-20 max-w-7xl">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div className="order-2 md:order-1 relative h-[300px] md:h-[400px] w-full rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
+                <Image
+                  src="/images/extension-demo.png"
+                  alt="Chrome extension demonstration"
+                  fill
+                  className="object-cover md:object-contain bg-muted/50 p-4"
+                />
+              </div>
+              <div className="order-1 md:order-2">
+                <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-sm font-medium mb-6">
+                  Browser Extension
+                </Badge>
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground tracking-tight">
+                  Add items directly from your browser
+                </h2>
+                <p className="text-xl text-muted-foreground mb-8">
+                  Want the effortless way? Sign up to get the NudgeSoon Chrome Extension. It automatically detects expiry dates on your bills, memberships, and licenses.
+                </p>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">1</div>
+                    <span className="text-muted-foreground text-lg">Browse your online accounts as usual</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">2</div>
+                    <span className="text-muted-foreground text-lg">A gentle &quot;Save&quot; button appears next to any expiry date</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">3</div>
+                    <span className="text-muted-foreground text-lg">Click once to securely submit it to NudgeSoon</span>
+                  </li>
+                </ul>
+                <Button
+                  onClick={() => router.push('/auth/signin')}
+                  size="lg"
+                  className="cursor-pointer text-base px-8 py-5 shadow-lg hover:shadow-xl transition-all"
+                >
+                  Sign up to get the extension
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Features Section */}
       <div
         id="features"
@@ -212,6 +264,7 @@ export function LandingPage({ onTryWithoutAccount }: LandingPageProps) {
               </h3>
               <p className="text-muted-foreground text-sm mb-6">
                 Encryption, isolation, and minimal data collection are baked into every layer of the stack.
+                {appFeatures.chromeExtension && " The Chrome extension strictly processes data locally on your device to protect your privacy."}
               </p>
               <Button asChild variant="outline" size="sm" className="cursor-pointer">
                 <Link href="/privacy">Learn more about privacy & security</Link>

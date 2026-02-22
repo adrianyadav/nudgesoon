@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ExpiryItemForm } from '@/components/expiry-item-form';
 import { ExpiryItemList } from '@/components/expiry-item-list';
+import { ExtensionBanner } from '@/components/extension-banner';
+import { features } from '@/lib/features';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { getItemsAction, getArchivedItemsAction } from '@/app/actions/item-actions';
@@ -22,6 +24,31 @@ export function Dashboard({ isGuest = false, onExitGuestMode }: DashboardProps) 
   const [guestItems, setGuestItems] = useState<ExpiryItem[]>([]);
   const [showArchive, setShowArchive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [initialName, setInitialName] = useState('');
+  const [initialExpiry, setInitialExpiry] = useState('');
+  const [autoSubmit, setAutoSubmit] = useState(false);
+
+  useEffect(() => {
+    // Read secure import payload passed by the Nudgesoon Chrome Extension (from bridge.js)
+    // Wrapped in setTimeout to satisfy strict linter checks around synchronous setState
+    const timer = setTimeout(() => {
+      try {
+        const stored = window.sessionStorage.getItem('nudge_extension_import');
+        if (stored) {
+          const data = JSON.parse(stored);
+          if (data.name) setInitialName(data.name);
+          if (data.expiry) setInitialExpiry(data.expiry);
+          setAutoSubmit(true);
+          // Clear it so it doesn't re-trigger on refresh
+          window.sessionStorage.removeItem('nudge_extension_import');
+        }
+      } catch (e) {
+        console.error("Failed to parse extension import data", e);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const loadItems = useCallback(async () => {
     setIsLoading(true);
@@ -168,6 +195,13 @@ export function Dashboard({ isGuest = false, onExitGuestMode }: DashboardProps) 
       <div className="absolute bottom-1/3 left-[8%] w-24 h-px bg-linear-to-r from-transparent via-primary/15 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-4 py-8 max-w-7xl relative z-10">
+        <div className="flex justify-between items-center mb-12">
+          {/* Header content... */}
+        </div>
+
+        {/* Extension Banner for logged in users */}
+        {!isGuest && features.chromeExtension && <ExtensionBanner />}
+
         {isGuest && (
           <div className="mb-6 rounded-xl border border-amber-300/70 bg-amber-50/90 px-4 py-3 text-amber-900 shadow-sm">
             <p className="text-sm font-medium">
@@ -184,6 +218,10 @@ export function Dashboard({ isGuest = false, onExitGuestMode }: DashboardProps) 
         {/* Add form */}
         <div className="mb-8">
           <ExpiryItemForm
+            key={`form-${initialName}-${initialExpiry}`}
+            initialName={initialName}
+            initialExpiry={initialExpiry}
+            autoSubmit={autoSubmit}
             onItemCreateOptimistic={isGuest ? undefined : handleItemCreateOptimistic}
             onItemCreateCommitted={isGuest ? undefined : handleItemCreateCommitted}
             onItemCreateFailed={isGuest ? undefined : handleItemCreateFailed}

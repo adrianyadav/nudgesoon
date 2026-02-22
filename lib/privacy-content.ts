@@ -1,7 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
-import { Lock, UserCheck, Database, Eye, Trash2, Server } from 'lucide-react';
+import { Lock, UserCheck, Database, Eye, Trash2, Server, Puzzle } from 'lucide-react';
+import { features } from '@/lib/features';
 
-export const PRIVACY_ITEMS: {
+const items: {
   icon: LucideIcon;
   title: string;
   description: string;
@@ -43,3 +44,14 @@ export const PRIVACY_ITEMS: {
       'Archive or permanently delete any item at any time. If you delete your account, all associated data is cascade-deleted from the database immediately.',
   },
 ];
+
+if (features.chromeExtension) {
+  items.push({
+    icon: Puzzle,
+    title: 'Extension safety',
+    description:
+      'The NudgeSoon Chrome Extension scans pages strictly locally within your browser to find expiry dates. It makes zero background network requests and explicitly requires your click to save an item. Imports are protected against Cross-Site Request Forgery (CSRF) via isolated payload delivery.',
+  });
+}
+
+export const PRIVACY_ITEMS = items;
