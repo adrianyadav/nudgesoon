@@ -275,8 +275,9 @@ export function ExpiryItemForm({
   autoSubmit = false,
 }: ExpiryItemFormProps) {
   const [isPending, startTransition] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  
+
   const [selectedName, setSelectedName] = useState(
     editingItem?.name || initialName || "",
   );
@@ -316,6 +317,7 @@ export function ExpiryItemForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitError(null);
 
     const formData = new FormData();
     formData.append("name", nameRef.current);
@@ -352,6 +354,8 @@ export function ExpiryItemForm({
             setYear(currentYear.toString());
             setMonth("");
             setDay("");
+          } else {
+            setSubmitError('Failed to save. Please try again.');
           }
           return;
         }
@@ -381,6 +385,7 @@ export function ExpiryItemForm({
           return;
         }
 
+        setSubmitError('Failed to save. Please try again.');
         onItemCreateFailed?.(tempId);
       }
     });
@@ -445,7 +450,7 @@ export function ExpiryItemForm({
         <div className="absolute top-0 left-0 right-0 h-1 shimmer pointer-events-none rounded-t-lg z-10" />
         <CardHeader className="relative z-10">
           <CardTitle className="text-2xl bg-linear-to-r bg-primary bg-clip-text text-transparent">
-            {editingItem ? "Edit Item" : "Add Something New"}
+            {editingItem ? "Edit item" : "Track something new"}
           </CardTitle>
         </CardHeader>
         <CardContent className="relative z-10">
@@ -555,10 +560,15 @@ export function ExpiryItemForm({
               </div>
 
               <p className="text-xs text-gray-500 italic">
-                💡 Tip: Only year is required. Leave month/day blank if you
-                don&apos;t know the exact date.
+                💡 Only the year is required — month and day are optional.
               </p>
             </div>
+
+            {submitError && (
+              <p role="alert" className="text-sm text-destructive">
+                Couldn&apos;t save that. Please try again.
+              </p>
+            )}
 
             <div className="flex gap-2">
               <Button

@@ -150,7 +150,7 @@ export function Navbar({ isGuest = false, onExitGuestMode }: NavbarProps) {
             {status === 'authenticated' && (
               <>
                 <p className="text-sm text-muted-foreground px-2">
-                  Hi,{" "}
+                  Hey,{" "}
                   <span className="font-medium text-foreground">
                     {session?.user?.name || session?.user?.email}
                   </span>{" "}

@@ -2,6 +2,7 @@
 
 import { useState, useLayoutEffect, useRef, useCallback } from 'react';
 import { useTransition } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ExpiryItemWithStatus, ExpiryStatus } from '@/lib/types';
 import { ExpiryItemCard } from './expiry-item-card';
 import {
@@ -195,7 +196,7 @@ export function ExpiryItemList({
     const emptyDescription =
       mode === 'archive'
         ? 'Items you archive will appear here.'
-        : 'Add your first item above to start tracking! ✨';
+        : 'Add your first item using the form above.';
 
     return (
       <div>
@@ -256,7 +257,7 @@ export function ExpiryItemList({
             type="button"
             variant="outline"
             size="sm"
-            className={`border-0 transition-all duration-200 cursor-pointer ${
+            className={`border-0 transition-all duration-200 cursor-pointer active:scale-95 ${
               statusFilters[status]
                 ? activeClass
                 : 'bg-muted/50 text-muted-foreground opacity-60 hover:opacity-100 hover:bg-muted hover:text-foreground'
@@ -300,24 +301,42 @@ export function ExpiryItemList({
         description={
           mode === 'active'
             ? `This will move all ${items.length} items to the archive. You can restore or permanently delete them from the Archive tab.`
-            : `This will permanently remove all ${items.length} archived items. This action cannot be undone.`
+            : `All ${items.length} archived items will be deleted. This can't be undone.`
         }
         confirmLabel={mode === 'active' ? 'Archive All' : 'Delete All Permanently'}
         isPending={isDeletingAll}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {filteredItems.map((item) => (
-          <div key={item.id}>
-            <ExpiryItemCard
-                item={item}
-                onDelete={handleDelete}
-                onItemUpdated={onItemUpdated}
-                onSaveItem={onSaveItem}
-              />
-          </div>
-        ))}
-      </div>
+      {filteredItems.length === 0 ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          No items match the selected filters.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <AnimatePresence>
+            {filteredItems.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{
+                  duration: 0.22,
+                  ease: [0.25, 1, 0.5, 1],
+                  delay: Math.min(index * 0.03, 0.15),
+                }}
+              >
+                <ExpiryItemCard
+                  item={item}
+                  onDelete={handleDelete}
+                  onItemUpdated={onItemUpdated}
+                  onSaveItem={onSaveItem}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }
