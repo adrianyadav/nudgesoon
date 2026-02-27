@@ -74,7 +74,7 @@ export function LandingPage({ onTryWithoutAccount }: LandingPageProps) {
           <h1
             className="flex items-center justify-center gap-4 md:gap-6 mb-6 text-foreground tracking-tight"
           >
-            <NudgeIcon className="w-16 h-16 md:w-24 md:h-24 text-primary" />
+            <span aria-hidden="true"><NudgeIcon className="w-16 h-16 md:w-24 md:h-24 text-primary" /></span>
             <span className="text-5xl md:text-9xl font-bold">{BRAND_NAME}</span>
           </h1>
 
