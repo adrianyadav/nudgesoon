@@ -1,6 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
 import { Lock, UserCheck, Database, Eye, Trash2, Server, Puzzle } from 'lucide-react';
-import { features } from '@/lib/features';
 
 const items: {
   icon: LucideIcon;
@@ -45,13 +44,11 @@ const items: {
   },
 ];
 
-if (features.chromeExtension) {
-  items.push({
-    icon: Puzzle,
-    title: 'Extension safety',
-    description:
-      'The NudgeSoon Chrome Extension scans pages strictly locally within your browser to find expiry dates. It makes zero background network requests and explicitly requires your click to save an item. Imports are protected against Cross-Site Request Forgery (CSRF) via isolated payload delivery.',
-  });
-}
+items.push({
+  icon: Puzzle,
+  title: 'Chrome extension',
+  description:
+    'The Nudge browser extension reads visible text on web pages solely to detect expiry-related dates. All scanning happens locally in your browser — no page content is transmitted to any server. The only data sent to NudgeSoon is the item name and expiry date you explicitly click to save. The extension temporarily stores this payload in Chrome\'s local storage and clears it immediately after delivery. No browsing history, personal information, or page content is collected, stored, or shared.',
+});
 
 export const PRIVACY_ITEMS = items;
