@@ -24,6 +24,9 @@ export default function PrivacyPage() {
           <p className="text-xl text-muted-foreground">
             Your data stays yours. Here&apos;s how we protect it.
           </p>
+          <p className="text-sm text-muted-foreground/60 mt-2">
+            Last updated: February 2026
+          </p>
         </div>
 
         <Card className="p-8 max-w-3xl mx-auto bg-card/80 backdrop-blur hover:shadow-xl transition-all">
@@ -56,7 +59,14 @@ export default function PrivacyPage() {
           </div>
         </Card>
 
-        <div className="mt-16 text-center">
+        <p className="text-center text-sm text-muted-foreground/60 mt-8 max-w-3xl mx-auto">
+          NudgeSoon is not directed at children under 13. For privacy questions, contact{' '}
+          <a href="mailto:hello@nudgesoon.com" className="underline hover:text-foreground transition-colors">
+            hello@nudgesoon.com
+          </a>.
+        </p>
+
+        <div className="mt-10 text-center">
           <Button asChild size="lg" variant="outline" className="cursor-pointer">
             <Link href="/">Back to Home</Link>
           </Button>
