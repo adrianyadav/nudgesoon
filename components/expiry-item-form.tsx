@@ -1,28 +1,41 @@
-'use client';
+"use client";
 /* eslint-disable react-hooks/static-components, react-hooks/preserve-manual-memoization */
 
-import { useState, useTransition, useRef, useEffect, useMemo, useCallback, memo } from 'react';
-import { createItemAction, updateItemAction } from '@/app/actions/item-actions';
-import { ExpiryItemWithStatus } from '@/lib/types';
-import { enrichItemWithStatus } from '@/lib/expiry-utils';
-import { getItemIcon, getCardImage, FORM_INITIAL_BACKGROUND, ITEM_SUGGESTIONS } from '@/lib/item-icons';
-import type { LucideIcon } from 'lucide-react';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  useState,
+  useTransition,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+  memo,
+} from "react";
+import { createItemAction, updateItemAction } from "@/app/actions/item-actions";
+import { ExpiryItemWithStatus } from "@/lib/types";
+import { enrichItemWithStatus } from "@/lib/expiry-utils";
+import {
+  getItemIcon,
+  getCardImage,
+  FORM_INITIAL_BACKGROUND,
+  ITEM_SUGGESTIONS,
+} from "@/lib/item-icons";
+import type { LucideIcon } from "lucide-react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 // Pre-compute icons for all known suggestions at module load (runs once)
 const SUGGESTION_ICON_CACHE = new Map<string, LucideIcon>(
-  ITEM_SUGGESTIONS.map((s) => [s, getItemIcon(s)])
+  ITEM_SUGGESTIONS.map((s) => [s, getItemIcon(s)]),
 );
 
 function getCachedIcon(name: string): LucideIcon {
@@ -58,7 +71,7 @@ const SuggestionItem = memo(function SuggestionItem({
       id={`suggestion-${index}`}
       role="option"
       aria-selected={isHighlighted}
-      className={`group cursor-pointer flex items-center gap-2 px-3 py-2 text-sm ${isHighlighted ? 'bg-accent' : 'hover:bg-accent'}`}
+      className={`group cursor-pointer flex items-center gap-2 px-3 py-2 text-sm ${isHighlighted ? "bg-accent" : "hover:bg-accent"}`}
       onMouseDown={(e) => {
         e.preventDefault();
         onSelect(suggestion);
@@ -82,7 +95,12 @@ interface NameAutocompleteProps {
   onSelect: (name: string) => void;
 }
 
-function NameAutocomplete({ initialName, hasSelectedBg, onNameChange, onSelect }: NameAutocompleteProps) {
+function NameAutocomplete({
+  initialName,
+  hasSelectedBg,
+  onNameChange,
+  onSelect,
+}: NameAutocompleteProps) {
   const [name, setName] = useState(initialName);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -91,29 +109,37 @@ function NameAutocomplete({ initialName, hasSelectedBg, onNameChange, onSelect }
   const displaySuggestions = useMemo(() => {
     const search = name.trim().toLowerCase();
     const filtered = search
-      ? SUGGESTIONS_LOWER.filter((s) => s.lower.includes(search)).map((s) => s.original)
+      ? SUGGESTIONS_LOWER.filter((s) => s.lower.includes(search)).map(
+          (s) => s.original,
+        )
       : ITEM_SUGGESTIONS.slice();
     return filtered.slice(0, 8);
   }, [name]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(e.target as Node)
+      ) {
         setShowSuggestions(false);
         setHighlightedIndex(-1);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelect = useCallback((suggestion: string) => {
-    setName(suggestion);
-    setShowSuggestions(false);
-    setHighlightedIndex(-1);
-    onNameChange(suggestion);
-    onSelect(suggestion);
-  }, [onNameChange, onSelect]);
+  const handleSelect = useCallback(
+    (suggestion: string) => {
+      setName(suggestion);
+      setShowSuggestions(false);
+      setHighlightedIndex(-1);
+      onNameChange(suggestion);
+      onSelect(suggestion);
+    },
+    [onNameChange, onSelect],
+  );
 
   const handleHover = useCallback((index: number) => {
     setHighlightedIndex(index);
@@ -121,30 +147,30 @@ function NameAutocomplete({ initialName, hasSelectedBg, onNameChange, onSelect }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions || displaySuggestions.length === 0) {
-      if (e.key === 'Escape') setShowSuggestions(false);
+      if (e.key === "Escape") setShowSuggestions(false);
       return;
     }
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev < displaySuggestions.length - 1 ? prev + 1 : 0
+          prev < displaySuggestions.length - 1 ? prev + 1 : 0,
         );
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev <= 0 ? displaySuggestions.length - 1 : prev - 1
+          prev <= 0 ? displaySuggestions.length - 1 : prev - 1,
         );
         break;
-      case 'Enter':
+      case "Enter":
         if (highlightedIndex >= 0) {
           e.preventDefault();
           handleSelect(displaySuggestions[highlightedIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         setShowSuggestions(false);
         setHighlightedIndex(-1);
@@ -154,11 +180,13 @@ function NameAutocomplete({ initialName, hasSelectedBg, onNameChange, onSelect }
     }
   };
 
-  const ItemIcon = getCachedIcon(name || ' ');
+  const ItemIcon = getCachedIcon(name || " ");
 
   return (
     <div className="space-y-2" ref={suggestionsRef}>
-      <Label className="text-base" htmlFor="name">What expires? ✨</Label>
+      <Label className="text-base" htmlFor="name">
+        What expires? ✨
+      </Label>
       <div className="relative">
         <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-muted-foreground">
           <ItemIcon className="h-5 w-5" />
@@ -181,7 +209,7 @@ function NameAutocomplete({ initialName, hasSelectedBg, onNameChange, onSelect }
           autoComplete="off"
           required
           placeholder="Passport, milk, gym membership..."
-          className={`border-border focus-visible:ring-ring text-lg pl-10 ${hasSelectedBg ? 'bg-white/95' : ''}`}
+          className={`border-border focus-visible:ring-ring text-lg pl-10 ${hasSelectedBg ? "bg-white/95" : ""}`}
           aria-expanded={showSuggestions && displaySuggestions.length > 0}
           aria-autocomplete="list"
           aria-controls="name-suggestions"
@@ -220,8 +248,18 @@ interface ExpiryItemFormProps {
   onItemCreateOptimistic?: (item: ExpiryItemWithStatus) => void;
   onItemCreateCommitted?: (tempId: number, item: ExpiryItemWithStatus) => void;
   onItemCreateFailed?: (tempId: number) => void;
-  onCreateItem?: (name: string, expiryDate: string) => Promise<ExpiryItemWithStatus | null>;
-  onUpdateItem?: (id: number, name: string, expiryDate: string) => Promise<ExpiryItemWithStatus | null>;
+  onCreateItem?: (
+    name: string,
+    expiryDate: string,
+  ) => Promise<ExpiryItemWithStatus | null>;
+  onUpdateItem?: (
+    id: number,
+    name: string,
+    expiryDate: string,
+  ) => Promise<ExpiryItemWithStatus | null>;
+  initialName?: string;
+  initialExpiry?: string;
+  autoSubmit?: boolean;
 }
 
 export function ExpiryItemForm({
@@ -232,39 +270,74 @@ export function ExpiryItemForm({
   onItemCreateFailed,
   onCreateItem,
   onUpdateItem,
+  initialName = "",
+  initialExpiry,
+  autoSubmit = false,
 }: ExpiryItemFormProps) {
   const [isPending, startTransition] = useTransition();
-  const [selectedName, setSelectedName] = useState(editingItem?.name || '');
-  const [resetKey, setResetKey] = useState(0);
-  const nameRef = useRef(editingItem?.name || '');
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const editDate = editingItem ? new Date(editingItem.expiry_date) : null;
-  const [year, setYear] = useState(editDate ? editDate.getFullYear().toString() : new Date().getFullYear().toString());
-  const [month, setMonth] = useState(editDate ? (editDate.getMonth() + 1).toString() : '');
-  const [day, setDay] = useState(editDate ? editDate.getDate().toString() : '');
+  const [selectedName, setSelectedName] = useState(
+    editingItem?.name || initialName || "",
+  );
+  const [resetKey, setResetKey] = useState(0);
+  const nameRef = useRef(editingItem?.name || initialName || "");
+
+  const editDate = editingItem
+    ? new Date(editingItem.expiry_date)
+    : initialExpiry
+      ? new Date(initialExpiry)
+      : null;
+  // If initialExpiry is invalid or missing, it falls back gracefully
+  const [year, setYear] = useState(
+    editDate && !isNaN(editDate.getTime())
+      ? editDate.getFullYear().toString()
+      : new Date().getFullYear().toString(),
+  );
+  const [month, setMonth] = useState(
+    editDate && !isNaN(editDate.getTime())
+      ? (editDate.getMonth() + 1).toString()
+      : "",
+  );
+  const [day, setDay] = useState(
+    editDate && !isNaN(editDate.getTime()) ? editDate.getDate().toString() : "",
+  );
+
+  useEffect(() => {
+    // We only auto-submit if it's explicitly requested and we have valid initial data
+    if (autoSubmit && initialName && initialExpiry && formRef.current) {
+      // Small timeout ensures all state is perfectly flushed before submitting
+      const timer = setTimeout(() => {
+        formRef.current?.requestSubmit();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [autoSubmit, initialName, initialExpiry]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitError(null);
 
     const formData = new FormData();
-    formData.append('name', nameRef.current);
+    formData.append("name", nameRef.current);
 
     // Build date: year is required, month/day are optional
     let expiryDate: string;
     if (month && day) {
-      expiryDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      expiryDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     } else if (month) {
       const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-      expiryDate = `${year}-${month.padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
+      expiryDate = `${year}-${month.padStart(2, "0")}-${lastDay.toString().padStart(2, "0")}`;
     } else {
       expiryDate = `${year}-12-31`;
     }
 
-    formData.append('expiry_date', expiryDate);
+    formData.append("expiry_date", expiryDate);
 
     startTransition(async () => {
       if (editingItem) {
-        formData.append('id', editingItem.id.toString());
+        formData.append("id", editingItem.id.toString());
         if (onUpdateItem) {
           await onUpdateItem(editingItem.id, nameRef.current, expiryDate);
         } else {
@@ -275,12 +348,14 @@ export function ExpiryItemForm({
         if (onCreateItem) {
           const created = await onCreateItem(nameRef.current, expiryDate);
           if (created) {
-            nameRef.current = '';
-            setSelectedName('');
+            nameRef.current = "";
+            setSelectedName("");
             setResetKey((k) => k + 1);
             setYear(currentYear.toString());
-            setMonth('');
-            setDay('');
+            setMonth("");
+            setDay("");
+          } else {
+            setSubmitError('Failed to save. Please try again.');
           }
           return;
         }
@@ -301,15 +376,16 @@ export function ExpiryItemForm({
         const result = await createItemAction(formData);
         if (result?.success && result.item) {
           onItemCreateCommitted?.(tempId, enrichItemWithStatus(result.item));
-          nameRef.current = '';
-          setSelectedName('');
+          nameRef.current = "";
+          setSelectedName("");
           setResetKey((k) => k + 1);
           setYear(currentYear.toString());
-          setMonth('');
-          setDay('');
+          setMonth("");
+          setDay("");
           return;
         }
 
+        setSubmitError('Failed to save. Please try again.');
         onItemCreateFailed?.(tempId);
       }
     });
@@ -317,18 +393,18 @@ export function ExpiryItemForm({
 
   const currentYear = new Date().getFullYear();
   const months = [
-    { value: '1', label: 'January' },
-    { value: '2', label: 'February' },
-    { value: '3', label: 'March' },
-    { value: '4', label: 'April' },
-    { value: '5', label: 'May' },
-    { value: '6', label: 'June' },
-    { value: '7', label: 'July' },
-    { value: '8', label: 'August' },
-    { value: '9', label: 'September' },
-    { value: '10', label: 'October' },
-    { value: '11', label: 'November' },
-    { value: '12', label: 'December' },
+    { value: "1", label: "January" },
+    { value: "2", label: "February" },
+    { value: "3", label: "March" },
+    { value: "4", label: "April" },
+    { value: "5", label: "May" },
+    { value: "6", label: "June" },
+    { value: "7", label: "July" },
+    { value: "8", label: "August" },
+    { value: "9", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
   ];
 
   const getDaysInMonth = () => {
@@ -336,12 +412,14 @@ export function ExpiryItemForm({
     return new Date(parseInt(year), parseInt(month), 0).getDate();
   };
 
-  const days = Array.from({ length: getDaysInMonth() }, (_, i) => (i + 1).toString());
+  const days = Array.from({ length: getDaysInMonth() }, (_, i) =>
+    (i + 1).toString(),
+  );
 
   // Only called on keystroke — stored in ref, no parent re-render
   const handleNameChange = useCallback((name: string) => {
     nameRef.current = name;
-    if (!name.trim()) setSelectedName('');
+    if (!name.trim()) setSelectedName("");
   }, []);
 
   // Only called on suggestion select — updates bg image
@@ -349,7 +427,9 @@ export function ExpiryItemForm({
     setSelectedName(name);
   }, []);
 
-  const bgImage = selectedName ? getCardImage(selectedName) : FORM_INITIAL_BACKGROUND;
+  const bgImage = selectedName
+    ? getCardImage(selectedName)
+    : FORM_INITIAL_BACKGROUND;
 
   return (
     <div>
@@ -361,7 +441,7 @@ export function ExpiryItemForm({
             alt=""
             fill
             quality={selectedName ? 75 : 90}
-            className={`object-cover transition-opacity duration-300 ${selectedName ? 'blur-md' : ''}`}
+            className={`object-cover transition-opacity duration-300 ${selectedName ? "blur-md" : ""}`}
             sizes="(max-width: 768px) 100vw, 1200px"
           />
           <div className="absolute inset-0 bg-linear-to-b from-white/90 via-white/80 to-white/65" />
@@ -370,14 +450,14 @@ export function ExpiryItemForm({
         <div className="absolute top-0 left-0 right-0 h-1 shimmer pointer-events-none rounded-t-lg z-10" />
         <CardHeader className="relative z-10">
           <CardTitle className="text-2xl bg-linear-to-r bg-primary bg-clip-text text-transparent">
-            {editingItem ? 'Edit Item' : 'Add Something New'}
+            {editingItem ? "Edit item" : "Track something new"}
           </CardTitle>
         </CardHeader>
         <CardContent className="relative z-10">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
             <NameAutocomplete
               key={resetKey}
-              initialName={editingItem?.name || ''}
+              initialName={editingItem?.name || initialName || ""}
               hasSelectedBg={!!selectedName}
               onNameChange={handleNameChange}
               onSelect={handleNameSelect}
@@ -401,7 +481,7 @@ export function ExpiryItemForm({
                     min={currentYear}
                     max={currentYear + 50}
                     placeholder={currentYear.toString()}
-                    className={`border-border focus-visible:ring-ring ${selectedName ? 'bg-white/95' : ''}`}
+                    className={`border-border focus-visible:ring-ring ${selectedName ? "bg-white/95" : ""}`}
                   />
                 </div>
 
@@ -411,7 +491,9 @@ export function ExpiryItemForm({
                   </Label>
                   <div className="flex gap-2">
                     <Select value={month || undefined} onValueChange={setMonth}>
-                      <SelectTrigger className={`w-full border-border focus:ring-ring ${selectedName ? 'bg-white/95' : ''}`}>
+                      <SelectTrigger
+                        className={`w-full border-border focus:ring-ring ${selectedName ? "bg-white/95" : ""}`}
+                      >
                         <SelectValue placeholder="Any month" />
                       </SelectTrigger>
                       <SelectContent position="popper" className="max-h-60">
@@ -428,8 +510,8 @@ export function ExpiryItemForm({
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setMonth('');
-                          setDay('');
+                          setMonth("");
+                          setDay("");
                         }}
                         className="shrink-0 px-2"
                       >
@@ -444,8 +526,14 @@ export function ExpiryItemForm({
                     Day <span className="text-gray-400">(optional)</span>
                   </Label>
                   <div className="flex gap-2">
-                    <Select value={day || undefined} onValueChange={setDay} disabled={!month}>
-                      <SelectTrigger className={`w-full border-border focus:ring-ring ${selectedName ? 'bg-white/95' : ''}`}>
+                    <Select
+                      value={day || undefined}
+                      onValueChange={setDay}
+                      disabled={!month}
+                    >
+                      <SelectTrigger
+                        className={`w-full border-border focus:ring-ring ${selectedName ? "bg-white/95" : ""}`}
+                      >
                         <SelectValue placeholder="Any day" />
                       </SelectTrigger>
                       <SelectContent position="popper" className="max-h-60">
@@ -461,7 +549,7 @@ export function ExpiryItemForm({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => setDay('')}
+                        onClick={() => setDay("")}
                         className="shrink-0 px-2"
                       >
                         Clear
@@ -472,9 +560,15 @@ export function ExpiryItemForm({
               </div>
 
               <p className="text-xs text-gray-500 italic">
-                💡 Tip: Only year is required. Leave month/day blank if you don&apos;t know the exact date.
+                💡 Only the year is required — month and day are optional.
               </p>
             </div>
+
+            {submitError && (
+              <p role="alert" className="text-sm text-destructive">
+                Couldn&apos;t save that. Please try again.
+              </p>
+            )}
 
             <div className="flex gap-2">
               <Button
@@ -484,15 +578,13 @@ export function ExpiryItemForm({
               >
                 {isPending ? (
                   <span className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
-                    />
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Saving...
                   </span>
                 ) : editingItem ? (
-                  'Update'
+                  "Update"
                 ) : (
-                  'Add'
+                  "Add"
                 )}
               </Button>
 

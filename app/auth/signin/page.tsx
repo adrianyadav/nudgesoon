@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { NudgeIcon } from '@/components/nudge-icon';
 import { BRAND_NAME } from '@/lib/constants';
 
 const ERROR_MESSAGES: Record<string, string> = {
-  OAuthSignin: 'Error starting Google sign in. Please try again.',
-  OAuthCallback: 'Could not create your account. Please try again or sign up with email and password.',
-  OAuthCreateAccount: 'Could not create account. Please try again.',
-  OAuthAccountNotLinked: 'This email is already used with a different sign-in method. Try signing in with email and password.',
-  EmailCreateAccount: 'Could not create account. Please try again.',
-  Callback: 'Could not create your account. Please try again or sign up with email and password.',
-  OAuthSessionError: 'Session error. Please try again.',
+  OAuthSignin: 'Couldn\'t start Google sign-in. Please try again.',
+  OAuthCallback: 'Something went wrong with Google sign-in. Please try again or use email instead.',
+  OAuthCreateAccount: 'Couldn\'t create your account. Please try again.',
+  OAuthAccountNotLinked: 'This email is already registered. Try signing in with your email and password instead.',
+  EmailCreateAccount: 'Couldn\'t create your account. Please try again.',
+  Callback: 'Something went wrong with Google sign-in. Please try again or use email instead.',
+  OAuthSessionError: 'Couldn\'t stay signed in. Please try again.',
   Default: 'Something went wrong. Please try again.',
 };
 
@@ -59,7 +60,7 @@ function SignInContent() {
       });
 
       if (result?.error) {
-        setError(isSignUp ? 'Failed to sign up. User may already exist.' : 'Invalid email or password');
+        setError(isSignUp ? 'An account with this email already exists. Try signing in instead.' : 'Incorrect email or password. Please try again.');
       } else if (result?.ok) {
         router.push('/');
         router.refresh();
@@ -73,14 +74,12 @@ function SignInContent() {
 
   return (
     <div className="min-h-screen bg-background grain mesh-gradient dot-pattern flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Decorative blurred circles */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-
       <Card className="w-full max-w-md border-border shadow-xl relative z-10 p-8">
         <CardHeader className="text-center">
-          <CardTitle className="text-4xl font-bold bg-linear-to-r bg-primary bg-clip-text text-transparent mb-2">
+          <div className="flex justify-center mb-3">
+            <NudgeIcon className="w-10 h-10 text-primary" />
+          </div>
+          <CardTitle className="text-3xl font-bold text-primary mb-2">
             {BRAND_NAME}
           </CardTitle>
           <CardDescription className="text-base">
@@ -195,7 +194,7 @@ function SignInContent() {
               disabled={isLoading}
               className="w-full bg-linear-to-r bg-primary hover:bg-primary/90 py-4"
             >
-              {isLoading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
+              {isLoading ? (isSignUp ? 'Creating account...' : 'Signing in...') : isSignUp ? 'Create account' : 'Sign in'}
             </Button>
           </form>
 

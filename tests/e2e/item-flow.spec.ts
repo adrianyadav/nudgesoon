@@ -9,7 +9,7 @@ const allowProdMutations = process.env.E2E_ALLOW_PROD_MUTATIONS === 'true';
 async function ensureAuthenticated(page: Page) {
   await page.goto('/');
 
-  const addItemHeading = page.getByText('Add Something New');
+  const addItemHeading = page.getByText('Track something new');
   if (await addItemHeading.isVisible({ timeout: 3000 }).catch(() => false)) {
     return;
   }

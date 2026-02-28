@@ -234,6 +234,20 @@ body {
   animation: shimmer 3s infinite;
 }
 
+/* Reduced motion: disable ambient animations for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .float-slow,
+  .float-medium,
+  .float-fast {
+    animation: none;
+  }
+
+  .shimmer {
+    animation: none;
+    background: none;
+  }
+}
+
 /* Dialog backdrop */
 dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.4);

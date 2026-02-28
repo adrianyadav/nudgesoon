@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Calendar, Sparkles, Bell, Shield } from 'lucide-react';
+import { Calendar, Bell, Shield } from 'lucide-react';
 import { NudgeIcon } from '@/components/nudge-icon';
 import { BRAND_NAME } from '@/lib/constants';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { features as appFeatures } from '@/lib/features';
 import { ExpiryItemCard } from '@/components/expiry-item-card';
 import type { ExpiryItemWithStatus, ExpiryStatus } from '@/lib/types';
 
@@ -49,29 +51,6 @@ interface LandingPageProps {
 export function LandingPage({ onTryWithoutAccount }: LandingPageProps) {
   const router = useRouter();
 
-  const features = [
-    {
-      icon: Calendar,
-      title: 'Simple Tracking',
-      description: 'Just add the year and item name. We handle the rest.',
-    },
-    {
-      icon: Sparkles,
-      title: 'Instant Updates',
-      description: 'See your items update in real-time, no waiting.',
-    },
-    {
-      icon: Bell,
-      title: 'Smart Reminders',
-      description: 'Visual nudges when things are about to expire.',
-    },
-    {
-      icon: Shield,
-      title: 'Private & Secure',
-      description: 'Your data is yours. Each user sees only their items.',
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-background grain mesh-gradient dot-pattern overflow-hidden relative">
       <Navbar />
@@ -95,7 +74,7 @@ export function LandingPage({ onTryWithoutAccount }: LandingPageProps) {
           <h1
             className="flex items-center justify-center gap-4 md:gap-6 mb-6 text-foreground tracking-tight"
           >
-            <NudgeIcon className="w-16 h-16 md:w-24 md:h-24 text-primary" />
+            <span aria-hidden="true"><NudgeIcon className="w-16 h-16 md:w-24 md:h-24 text-primary" /></span>
             <span className="text-5xl md:text-9xl font-bold">{BRAND_NAME}</span>
           </h1>
 
@@ -109,27 +88,21 @@ export function LandingPage({ onTryWithoutAccount }: LandingPageProps) {
             </span>
           </p>
 
-          <div className="flex flex-col items-center gap-3">
-            <div className="flex gap-4 justify-center flex-wrap">
-              <Button
-                onClick={() => router.push('/auth/signin')}
-                size="lg"
-                className="cursor-pointer text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all"
-              >
-                Get Started Free
-              </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6" asChild>
-                <Link href="#features">Learn More</Link>
-              </Button>
-            </div>
+          <div className="flex flex-col items-center gap-4">
             <Button
-              variant="ghost"
-              size="sm"
-              className="cursor-pointer text-sm text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
+              onClick={() => router.push('/auth/signin')}
+              size="lg"
+              className="cursor-pointer text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all"
+            >
+              Get Started Free
+            </Button>
+            <button
+              type="button"
+              className="cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4 decoration-muted-foreground/40 hover:decoration-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring rounded-sm"
               onClick={onTryWithoutAccount}
             >
-              Try Without Account
-            </Button>
+              or try it without signing up
+            </button>
           </div>
         </div>
 
@@ -151,74 +124,98 @@ export function LandingPage({ onTryWithoutAccount }: LandingPageProps) {
         </div>
       </div>
 
-      {/* Features Section */}
+      {appFeatures.chromeExtension && (
+        <>
+          {/* Extension Section */}
+          <div className="container mx-auto px-4 py-20 max-w-7xl">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div className="order-2 md:order-1 relative h-[300px] md:h-[400px] w-full rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
+                <Image
+                  src="/images/extension-demo.png"
+                  alt="Chrome extension demonstration"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover md:object-contain bg-muted/50 p-4"
+                />
+              </div>
+              <div className="order-1 md:order-2">
+                <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-sm font-medium mb-6">
+                  Browser Extension
+                </Badge>
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground tracking-tight">
+                  Add items directly from your browser
+                </h2>
+                <p className="text-xl text-muted-foreground mb-8">
+                  Want the effortless way? Sign up to get the NudgeSoon Chrome Extension. It automatically detects expiry dates on your bills, memberships, and licenses.
+                </p>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">1</div>
+                    <span className="text-muted-foreground text-lg">Browse your online accounts as usual</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">2</div>
+                    <span className="text-muted-foreground text-lg">A gentle &quot;Save&quot; button appears next to any expiry date</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">3</div>
+                    <span className="text-muted-foreground text-lg">Click once to securely submit it to NudgeSoon</span>
+                  </li>
+                </ul>
+                <Button
+                  onClick={() => router.push('/auth/signin')}
+                  size="lg"
+                  className="cursor-pointer text-base px-8 py-5 shadow-lg hover:shadow-xl transition-all"
+                >
+                  Sign up to get the extension
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Features */}
       <div
         id="features"
-        className="container mx-auto px-4 py-20 max-w-7xl"
+        className="container mx-auto px-4 py-16 max-w-4xl"
       >
-        <div className="text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-bold mb-4 text-foreground">
-            Why Choose {BRAND_NAME}?
-          </h2>
-          <p className="text-xl text-muted-foreground">
-            The simplest way to track everything that matters
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div key={index}>
-                <Card className="p-6 h-full hover:shadow-xl transition-all hover:scale-105 bg-card/80 backdrop-blur group">
-                  <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Icon className="w-7 h-7 text-primary-foreground" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 text-foreground">
-                    {feature.title}
-                  </h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
-                </Card>
-              </div>
-            );
-          })}
+        <div className="grid md:grid-cols-3 gap-10 text-center">
+          <div className="flex flex-col items-center gap-3">
+            <Calendar className="w-6 h-6 text-primary" />
+            <div>
+              <p className="font-semibold text-foreground mb-1">Simple tracking</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Just add the name and year. We handle the rest.</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-3">
+            <Bell className="w-6 h-6 text-primary" />
+            <div>
+              <p className="font-semibold text-foreground mb-1">Visual nudges</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Green, amber, red — know at a glance what needs attention.</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-3">
+            <Shield className="w-6 h-6 text-primary" />
+            <div>
+              <p className="font-semibold text-foreground mb-1">Private by default</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Encrypted at rest. Each user sees only their own items.</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Privacy & Security Section */}
-      <div
-        id="privacy"
-        className="container mx-auto px-4 py-20 max-w-7xl"
-      >
-        <div className="text-center mb-12">
-          <h2 className="text-5xl md:text-6xl font-bold mb-4 text-foreground">
-            Privacy & Security
-          </h2>
-          <p className="text-xl text-muted-foreground">
-            Your data stays yours. Here&apos;s how we protect it.
-          </p>
+      {/* Privacy callout */}
+      <div className="container mx-auto px-4 pb-12 max-w-4xl">
+        <div id="privacy" className="flex items-center justify-center gap-2 py-6 border-t border-border/50 text-sm text-muted-foreground">
+          <Shield className="w-4 h-4 text-primary shrink-0" />
+          <span>
+            Encrypted at rest, no third-party tracking, minimal data collection.{' '}
+            <Link href="/privacy" className="text-primary hover:underline underline-offset-4">
+              Privacy & security details
+            </Link>
+          </span>
         </div>
-
-        <Card className="p-8 max-w-3xl mx-auto bg-card/80 backdrop-blur hover:shadow-xl transition-all">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shrink-0">
-              <Shield className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                Built with security first
-              </h3>
-              <p className="text-muted-foreground text-sm mb-6">
-                Encryption, isolation, and minimal data collection are baked into every layer of the stack.
-              </p>
-              <Button asChild variant="outline" size="sm" className="cursor-pointer">
-                <Link href="/privacy">Learn more about privacy & security</Link>
-              </Button>
-            </div>
-          </div>
-        </Card>
       </div>
 
       <Footer />

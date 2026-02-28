@@ -44,6 +44,13 @@ const ExpiryItemCardComponent = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!saveSuccess) return;
+    const t = setTimeout(() => setSaveSuccess(false), 1400);
+    return () => clearTimeout(t);
+  }, [saveSuccess]);
   const colors =
     item.status === 'safe' ? getAccentCardColors(item.name) : getStatusColors(item.status);
   const ItemIcon = getItemIcon(item.name);
@@ -93,6 +100,7 @@ const ExpiryItemCardComponent = ({
           const saved = await onSaveItem(item.id, item.name, expiryDate);
           if (saved) {
             onItemUpdated?.(enrichItemWithStatus(saved));
+            setSaveSuccess(true);
           } else {
             onItemUpdated?.(previousItem);
           }
@@ -100,6 +108,7 @@ const ExpiryItemCardComponent = ({
           const result = await updateItemAction(formData);
           if (result?.success && result.item) {
             onItemUpdated?.(enrichItemWithStatus(result.item));
+            setSaveSuccess(true);
           } else {
             onItemUpdated?.(previousItem);
           }
@@ -135,6 +144,7 @@ const ExpiryItemCardComponent = ({
         group relative transition-all duration-300
         ${colors.bg} ${colors.glow}
         ${isDeleting ? 'opacity-50' : ''}
+        ${saveSuccess ? 'ring-2 ring-green-400/60 shadow-[0_0_18px_rgba(74,222,128,0.25)]' : ''}
         overflow-hidden
       `}
     >
@@ -185,7 +195,7 @@ const ExpiryItemCardComponent = ({
           >
             <ItemIcon className="w-6 h-6 text-white" />
           </div>
-          <h3 className={`text-xl font-semibold ${colors.text} [text-shadow:0_1px_2px_rgba(255,255,255,0.9),0_0_4px_rgba(255,255,255,0.5)]`}>{item.name}</h3>
+          <h3 className={`text-xl font-semibold line-clamp-2 break-words min-w-0 ${colors.text} [text-shadow:0_1px_2px_rgba(255,255,255,0.9),0_0_4px_rgba(255,255,255,0.5)]`}>{item.name}</h3>
         </div>
         <Badge
           variant="outline"
@@ -284,7 +294,7 @@ const ExpiryItemCardComponent = ({
                     return diff;
                   })()
                 : item.daysUntilExpiry;
-              if (daysLeft === 0) return '⚠️ Expires today!';
+              if (daysLeft === 0) return 'Expires today';
               if (daysLeft < 0) return `Expired ${Math.abs(daysLeft)} days ago`;
               return `${daysLeft} days left`;
             })()}

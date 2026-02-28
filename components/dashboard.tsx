@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ExpiryItemForm } from '@/components/expiry-item-form';
 import { ExpiryItemList } from '@/components/expiry-item-list';
+import { ExtensionBanner } from '@/components/extension-banner';
+import { features } from '@/lib/features';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { getItemsAction, getArchivedItemsAction } from '@/app/actions/item-actions';
@@ -10,6 +12,7 @@ import { ExpiryItem, ExpiryItemWithStatus } from '@/lib/types';
 import { enrichItemWithStatus } from '@/lib/expiry-utils';
 import { loadGuestItems, saveGuestItems } from '@/lib/guest-storage';
 import { Archive, ChevronDown } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface DashboardProps {
   isGuest?: boolean;
@@ -23,8 +26,36 @@ export function Dashboard({ isGuest = false, onExitGuestMode }: DashboardProps) 
   const [showArchive, setShowArchive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const [initialName, setInitialName] = useState('');
+  const [initialExpiry, setInitialExpiry] = useState('');
+  const [autoSubmit, setAutoSubmit] = useState(false);
+
+  useEffect(() => {
+    // Read secure import payload passed by the Nudgesoon Chrome Extension (from bridge.js)
+    // Wrapped in setTimeout to satisfy strict linter checks around synchronous setState
+    const timer = setTimeout(() => {
+      try {
+        const stored = window.sessionStorage.getItem('nudge_extension_import');
+        if (stored) {
+          const data = JSON.parse(stored);
+          if (data.name) setInitialName(data.name);
+          if (data.expiry) setInitialExpiry(data.expiry);
+          setAutoSubmit(true);
+          // Clear it so it doesn't re-trigger on refresh
+          window.sessionStorage.removeItem('nudge_extension_import');
+        }
+      } catch (e) {
+        console.error("Failed to parse extension import data", e);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
   const loadItems = useCallback(async () => {
     setIsLoading(true);
+    setLoadError(null);
 
     if (isGuest) {
       setGuestItems(loadGuestItems());
@@ -32,10 +63,15 @@ export function Dashboard({ isGuest = false, onExitGuestMode }: DashboardProps) 
       return;
     }
 
-    const [activeData, archivedData] = await Promise.all([getItemsAction(), getArchivedItemsAction()]);
-    setItems(activeData);
-    setArchivedItems(archivedData);
-    setIsLoading(false);
+    try {
+      const [activeData, archivedData] = await Promise.all([getItemsAction(), getArchivedItemsAction()]);
+      setItems(activeData);
+      setArchivedItems(archivedData);
+    } catch {
+      setLoadError('Failed to load your items. Check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }, [isGuest]);
 
   useEffect(() => {
@@ -168,15 +204,21 @@ export function Dashboard({ isGuest = false, onExitGuestMode }: DashboardProps) 
       <div className="absolute bottom-1/3 left-[8%] w-24 h-px bg-linear-to-r from-transparent via-primary/15 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-4 py-8 max-w-7xl relative z-10">
+        <div className="flex justify-between items-center mb-12">
+          {/* Header content... */}
+        </div>
+
+        {/* Extension Banner for logged in users */}
+        {!isGuest && features.chromeExtension && <ExtensionBanner />}
+
         {isGuest && (
           <div className="mb-6 rounded-xl border border-amber-300/70 bg-amber-50/90 px-4 py-3 text-amber-900 shadow-sm">
             <p className="text-sm font-medium">
-              You are in guest mode. Your data is stored only in this browser&apos;s local storage and
-              is not permanently saved to an account.
+              You&apos;re trying out NudgeSoon. Your items are saved in this browser only — they
+              won&apos;t carry over to other devices.
             </p>
             <p className="mt-1 text-xs text-amber-800/90">
-              If you clear browser data, switch devices, or use private browsing, your guest data may
-              be lost.
+              Create a free account to keep your items safe and access them anywhere.
             </p>
           </div>
         )}
@@ -184,6 +226,10 @@ export function Dashboard({ isGuest = false, onExitGuestMode }: DashboardProps) 
         {/* Add form */}
         <div className="mb-8">
           <ExpiryItemForm
+            key={`form-${initialName}-${initialExpiry}`}
+            initialName={initialName}
+            initialExpiry={initialExpiry}
+            autoSubmit={autoSubmit}
             onItemCreateOptimistic={isGuest ? undefined : handleItemCreateOptimistic}
             onItemCreateCommitted={isGuest ? undefined : handleItemCreateCommitted}
             onItemCreateFailed={isGuest ? undefined : handleItemCreateFailed}
@@ -198,6 +244,17 @@ export function Dashboard({ isGuest = false, onExitGuestMode }: DashboardProps) 
             <div className="text-center py-12">
               <div className="inline-block w-12 h-12 border-4 border-border border-t-primary rounded-full animate-spin" />
               <p className="text-gray-500 mt-4">Loading your items...</p>
+            </div>
+          ) : loadError ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-8 text-center">
+              <p className="text-sm font-medium text-destructive">{loadError}</p>
+              <button
+                type="button"
+                onClick={loadItems}
+                className="mt-3 text-sm font-medium text-primary underline hover:no-underline"
+              >
+                Try again
+              </button>
             </div>
           ) : (
             <ExpiryItemList
@@ -228,19 +285,28 @@ export function Dashboard({ isGuest = false, onExitGuestMode }: DashboardProps) 
               <ChevronDown className={`size-4 transition-transform ${showArchive ? 'rotate-180' : ''}`} />
             </button>
 
-            {showArchive && (
-              <div className="mt-4">
-                <ExpiryItemList
-                  items={archivedDisplayItems}
-                  onItemsChange={isGuest ? undefined : loadItems}
-                  onItemUpdated={isGuest ? undefined : handleItemUpdated}
-                  mode="archive"
-                  onSaveItem={isGuest ? handleGuestUpdateItem : undefined}
-                  onDeleteItem={isGuest ? handleGuestDeleteArchivedItem : undefined}
-                  onDeleteAllItems={isGuest ? handleGuestDeleteAllArchivedItems : undefined}
-                />
-              </div>
-            )}
+            <AnimatePresence>
+              {showArchive && (
+                <motion.div
+                  key="archive-panel"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.28, ease: [0.25, 1, 0.5, 1] }}
+                  className="overflow-hidden mt-4"
+                >
+                  <ExpiryItemList
+                    items={archivedDisplayItems}
+                    onItemsChange={isGuest ? undefined : loadItems}
+                    onItemUpdated={isGuest ? undefined : handleItemUpdated}
+                    mode="archive"
+                    onSaveItem={isGuest ? handleGuestUpdateItem : undefined}
+                    onDeleteItem={isGuest ? handleGuestDeleteArchivedItem : undefined}
+                    onDeleteAllItems={isGuest ? handleGuestDeleteAllArchivedItems : undefined}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </div>

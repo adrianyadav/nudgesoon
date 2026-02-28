@@ -34,7 +34,7 @@ test.describe('Public app smoke tests', () => {
     await page.getByLabel('Email').fill('playwright@example.com');
     await page.locator('#password').fill('password123');
     await page.locator('#confirmPassword').fill('password456');
-    await page.getByRole('button', { name: 'Sign Up' }).click();
+    await page.getByRole('button', { name: 'Create account' }).click();
 
     await expect(page.getByText('Passwords do not match')).toBeVisible();
   });
